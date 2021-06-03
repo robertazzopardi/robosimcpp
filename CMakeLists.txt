@@ -1,3 +1,5 @@
+# FYI I'm still learning cmake
+
 cmake_minimum_required(VERSION 3.0.0)
 project(
   robosim
@@ -41,8 +43,15 @@ add_library(${PROJECT_NAME} SHARED ${SOURCES})
 # message(STATUS ${SOURCES})
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
-target_compile_options(${PROJECT_NAME} PUBLIC -Werror -Wall -Wextra -Os
-                                              -std=c++20 -pthread)
+target_compile_options(
+  ${PROJECT_NAME}
+  PUBLIC -Werror
+         -Wall
+         -Wextra
+         -Os
+         -flto
+         -std=c++20
+         -pthread)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ./)
 target_include_directories(${PROJECT_NAME} PUBLIC src/robosim include/robosim)
@@ -51,11 +60,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC src/robosim include/robosim)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl2)
 # Find SDL2, SDL2_image and SDL2_gfx libraries
 find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
+# find_package(SDL2_image REQUIRED)
 find_package(SDL2_gfx REQUIRED)
 
 # Link SDL2::Main, SDL2::Image and SDL2::GFX to our project
-target_link_libraries(${PROJECT_NAME} SDL2::Main SDL2::Image SDL2::GFX)
+target_link_libraries(${PROJECT_NAME} SDL2::Main SDL2::GFX)
+# SDL2::Image
 
 # Set up install commands
 install(TARGETS ${PROJECT_NAME} DESTINATION ${LIB_INSTALL_PATH})

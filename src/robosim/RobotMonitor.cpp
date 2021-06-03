@@ -5,6 +5,7 @@
 #include <exception>
 #include <iostream>
 #include <thread>
+#include <type_traits>
 
 namespace arenamodel {
 class ArenaModel;
@@ -19,38 +20,35 @@ RobotMonitor::RobotMonitor(int delay, bool verbose) {
 }
 
 RobotMonitor::~RobotMonitor() {
-    delete static_cast<SimulatedRobot *>(robot);
-    robot = nullptr;
 }
 
 void *RobotMonitor::getRobot() {
-    return robot;
+    return robot.get();
 }
 
-void RobotMonitor::setArenaModel(void *model) {
-    robot = new SimulatedRobot(static_cast<arenamodel::ArenaModel *>(model));
+void RobotMonitor::setArenaModel(std::shared_ptr<void> model) {
+    auto modeltmp = std::static_pointer_cast<arenamodel::ArenaModel>(model).get();
+    robot = std::make_shared<SimulatedRobot>(modeltmp);
 }
 
 bool RobotMonitor::setTravelSpeed(int travelSpeed) {
-    return static_cast<SimulatedRobot *>(robot)->setTravelSpeed(travelSpeed);
+    return std::static_pointer_cast<SimulatedRobot>(robot)->setTravelSpeed(travelSpeed);
 }
 
 void RobotMonitor::travel() {
-    static_cast<SimulatedRobot *>(robot)->travel();
-    std::cout << static_cast<SimulatedRobot *>(robot)->isAtDestination() << std::endl;
-    // while (!static_cast<SimulatedRobot *>(robot)->isAtDestination()) {
-    //     try {
-    //         std::cout << "Travelling" << std::endl;
-    //         std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-    //     } catch (const std::exception &e) {
-    //         std::cerr << e.what() << '\n';
-    //     }
-    // }
+    std::static_pointer_cast<SimulatedRobot>(robot)->travel();
+    while (!std::static_pointer_cast<SimulatedRobot>(robot)->isAtDestination()) {
+        try {
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+        } catch (const std::exception &e) {
+            std::cerr << e.what() << '\n';
+        }
+    }
 }
 
 void RobotMonitor::rotate(int degrees) {
-    static_cast<SimulatedRobot *>(robot)->rotate(degrees);
-    while (!static_cast<SimulatedRobot *>(robot)->isAtRotation()) {
+    std::static_pointer_cast<SimulatedRobot>(robot)->rotate(degrees);
+    while (!std::static_pointer_cast<SimulatedRobot>(robot)->isAtRotation()) {
         try {
             std::this_thread::sleep_for(std::chrono::milliseconds(delay));
         } catch (const std::exception &e) {
@@ -73,7 +71,7 @@ void RobotMonitor::rotate(int degrees) {
  * @return the x location on the map
  */
 int RobotMonitor::getX() {
-    return static_cast<SimulatedRobot *>(robot)->getX();
+    return std::static_pointer_cast<SimulatedRobot>(robot)->getX();
 }
 
 /**
@@ -81,7 +79,7 @@ int RobotMonitor::getX() {
  * @return the y location on the map
  */
 int RobotMonitor::getY() {
-    return static_cast<SimulatedRobot *>(robot)->getY();
+    return std::static_pointer_cast<SimulatedRobot>(robot)->getY();
 }
 
 /**
@@ -92,7 +90,7 @@ int RobotMonitor::getY() {
  * @return the heading
  */
 int RobotMonitor::getHeading() {
-    return static_cast<SimulatedRobot *>(robot)->getHeading();
+    return std::static_pointer_cast<SimulatedRobot>(robot)->getHeading();
 }
 
 /**
@@ -115,7 +113,7 @@ int RobotMonitor::getHeading() {
  * @return bumper status
  */
 bool RobotMonitor::isBumperPressed() {
-    return static_cast<SimulatedRobot *>(robot)->isBumperPressed();
+    return std::static_pointer_cast<SimulatedRobot>(robot)->isBumperPressed();
 }
 
 /**
@@ -123,7 +121,7 @@ bool RobotMonitor::isBumperPressed() {
  * @return a Color object
  */
 SDL_Color RobotMonitor::getCSenseColor() {
-    return static_cast<SimulatedRobot *>(robot)->getCSenseColor();
+    return std::static_pointer_cast<SimulatedRobot>(robot)->getCSenseColor();
 }
 
 /**
@@ -135,7 +133,7 @@ SDL_Color RobotMonitor::getCSenseColor() {
  * @return range to nearest object in the direction of the sensor in mm
  */
 int RobotMonitor::getUSenseRange() {
-    return static_cast<SimulatedRobot *>(robot)->getUSenseRange();
+    return std::static_pointer_cast<SimulatedRobot>(robot)->getUSenseRange();
 }
 
 /**
@@ -146,8 +144,8 @@ int RobotMonitor::getUSenseRange() {
  * @param angle (in degrees) from the heading of the robot
  */
 void RobotMonitor::setDirection(int degrees) {
-    if (static_cast<SimulatedRobot *>(robot)->setDirection(degrees)) {
-        while (static_cast<SimulatedRobot *>(robot)->getDirection() != degrees) {
+    if (std::static_pointer_cast<SimulatedRobot>(robot)->setDirection(degrees)) {
+        while (std::static_pointer_cast<SimulatedRobot>(robot)->getDirection() != degrees) {
             try {
                 std::this_thread::sleep_for(std::chrono::milliseconds(delay));
             } catch (const std::exception &e) {
@@ -164,7 +162,7 @@ void RobotMonitor::setDirection(int degrees) {
  * and any value in the range -90 (i.e. looking left) to 90 (i.e. looking right)
  */
 int RobotMonitor::getDirection() {
-    return static_cast<SimulatedRobot *>(robot)->getDirection();
+    return std::static_pointer_cast<SimulatedRobot>(robot)->getDirection();
 }
 
 // =========================================================================================
@@ -181,13 +179,14 @@ int RobotMonitor::getDirection() {
  * The monitor writes various bits of robot state to the screen, then sleeps.
  */
 void RobotMonitor::run(bool *running) {
+    auto r = std::static_pointer_cast<SimulatedRobot>(robot);
     while (*running) {
         if (verbose) {
-            std::cout << "Pose: (" << static_cast<SimulatedRobot *>(robot)->getX() << "," << static_cast<SimulatedRobot *>(robot)->getY() << ") with heading " << static_cast<SimulatedRobot *>(robot)->getHeading() << std::endl;
-            std::cout << "with a current travel speed of " << static_cast<SimulatedRobot *>(robot)->getTravelSpeed() << "mm per second" << std::endl;
-            std::cout << "Bumper is pressed: " << static_cast<SimulatedRobot *>(robot)->isBumperPressed() << std::endl;
-            std::cout << "Colour Sensor: " << static_cast<SimulatedRobot *>(robot)->getCSenseColor().r << "" << static_cast<SimulatedRobot *>(robot)->getCSenseColor().g << "" << static_cast<SimulatedRobot *>(robot)->getCSenseColor().b << "" << std::endl;
-            std::cout << "Range Sensor: " << static_cast<SimulatedRobot *>(robot)->getUSenseRange() << " with direction " << static_cast<SimulatedRobot *>(robot)->getDirection() << std::endl;
+            std::cout << "Pose: (" << r->getX() << "," << r->getY() << ") with heading " << r->getHeading() << std::endl;
+            std::cout << "with a current travel speed of " << r->getTravelSpeed() << "mm per second" << std::endl;
+            std::cout << "Bumper is pressed: " << r->isBumperPressed() << std::endl;
+            std::cout << "Colour Sensor: " << r->getCSenseColor().r << "" << r->getCSenseColor().g << "" << r->getCSenseColor().b << "" << std::endl;
+            std::cout << "Range Sensor: " << r->getUSenseRange() << " with direction " << r->getDirection() << std::endl;
             std::cout << "==================================================================" << std::endl;
         }
         try {

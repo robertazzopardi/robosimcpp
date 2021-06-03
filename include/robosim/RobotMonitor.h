@@ -12,14 +12,16 @@
 #ifndef __ROBOT_MONITOR__
 #define __ROBOT_MONITOR__
 
-typedef struct SDL_Color SDL_Color;
+#include <memory>
+
+struct SDL_Color;
 
 namespace robosim {
 
 class RobotMonitor {
   private:
     // stored as void, purely to hide simulated robot
-    void *robot;
+    std::shared_ptr<void> robot;
     int delay;
     bool verbose;
 
@@ -27,7 +29,8 @@ class RobotMonitor {
     RobotMonitor(int, bool);
     ~RobotMonitor();
 
-    void setArenaModel(void *);
+    void setArenaModel(std::shared_ptr<void>);
+
     void *getRobot();
 
     bool setTravelSpeed(int);

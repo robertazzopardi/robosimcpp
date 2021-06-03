@@ -5,12 +5,12 @@
 #include "SimulatedRobot.h"
 #include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
-#include <SDL_Rect.h>
 #include <SDL_error.h>
 #include <SDL_events.h>
 #include <SDL_keyboard.h>
 #include <SDL_keycode.h>
 #include <SDL_pixels.h>
+#include <SDL_rect.h>
 #include <SDL_render.h>
 #include <SDL_stdinc.h>
 #include <SDL_timer.h>
@@ -18,21 +18,16 @@
 #include <iostream>
 #include <math.h>
 
-#define SIZE 800
-#define WINDOW_TITLE "RoboSim"
-#define SCALE_FACTOR 0.25
-#define DEGREES_TO_RADIANS 0.017453292519943295
-
-#define LAY_COLOUR(c) c.r, c.g, c.b, c.a
-#define LAY_POINTS(p, i) p[i].x, p[i].y, p[i + 1].x, p[i + 1].y
-#define LAY_CIRCLE(c) c.x, c.y, c.r
-#define LAY_LINE(p1, p2) p1.x, p1.y, p2.x, p2.y
+static constexpr auto SIZE = 800;
+static constexpr auto WINDOW_TITLE = "RoboSim";
+static constexpr auto FRAME_DELAY = 1000 / 60;
+// static constexpr auto DEGREES_TO_RADIANS = 0.017453292519943295;
 
 using arenamodel::ArenaModel;
 using arenamodelview::ArenaModelView;
 using mygridcell::OccupancyType;
 using simulatedrobot::SimulatedRobot;
-namespace rc = sdlcolours::colour;
+namespace rc = sdlcolours;
 
 typedef struct {
     Sint16 x;
@@ -47,7 +42,13 @@ struct Robot {
     SDL_FPoint radius;
 };
 
-static const Uint32 FRAME_DELAY = 1000 / 60;
+struct RenderObjects {
+    std::vector<SDL_FRect> points;
+    std::vector<SDL_FRect> obstacles;
+    std::vector<SDL_FRect> reds;
+    std::vector<SDL_FRect> greens;
+    std::vector<SDL_FRect> blues;
+};
 
 ArenaModelView::ArenaModelView(ArenaModel *model, SimulatedRobot *robot) {
     this->model = model;
@@ -55,51 +56,22 @@ ArenaModelView::ArenaModelView(ArenaModel *model, SimulatedRobot *robot) {
 
     pointCount = (model->getArenaWidthInCells() * 4) + 4;
 
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+    if (SDL_Init(SDL_INIT_EVERYTHING)) {
         std::cout << "error initializing SDL: %s\n"
                   << SDL_GetError() << std::endl;
     }
 
-    points = new SDL_FPoint[pointCount << 1];
-    obstacles = new SDL_FRect[model->getObstacleCount() + 1];
-    reds = new SDL_FRect[model->getRedCount() + 1];
-    greens = new SDL_FRect[model->getGreenCount() + 1];
-    blues = new SDL_FRect[model->getBlueCount() + 1];
-
-    robotRender = new Robot();
+    robotRender = std::make_unique<Robot>();
+    renderObjects = std::make_unique<RenderObjects>();
 
     window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SIZE, SIZE, 0);
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     buildGui();
-
-    // update();
 }
 
 ArenaModelView::~ArenaModelView() {
-    // Free the points array
-    delete[] points;
-    points = nullptr;
-
-    // Free the cells
-    delete[] obstacles;
-    delete[] reds;
-    delete[] greens;
-    delete[] blues;
-    obstacles = nullptr;
-    reds = nullptr;
-    greens = nullptr;
-    blues = nullptr;
-
-    delete robotRender;
-    robotRender = nullptr;
-
-    obstacles = nullptr;
-    reds = nullptr;
-    greens = nullptr;
-    blues = nullptr;
-
     // Destroy renderer
     SDL_DestroyRenderer(renderer);
 
@@ -113,48 +85,29 @@ ArenaModelView::~ArenaModelView() {
     SDL_Quit();
 }
 
-void ArenaModelView::setRobot(SimulatedRobot *robot) {
-    this->robot = robot;
-}
-
 void ArenaModelView::buildGui() {
     // Set up grid lines
-    int index = 0;
-    for (int i = 0; i < pointCount / 4; i++) {
-        float dxy = i * model->getCellWidth();
-        points[index++] = {dxy, 0};
-        points[index++] = {dxy, SIZE};
-        points[index++] = {0, dxy};
-        points[index++] = {SIZE, dxy};
+    for (auto i = 0; i < pointCount / 4; i++) {
+        auto dxy = i * model->getCellWidth();
+        renderObjects->points.push_back({dxy, 0, SIZE, SIZE});
+        renderObjects->points.push_back({0, dxy, SIZE, SIZE});
     }
-    std::cout << pointCount << " " << index << std::endl;
 
-    points[index - 1].y -= 1;
-    points[index - 2].y -= 1;
-    points[index - 3].x -= 1;
-    points[index - 4].x -= 1;
-
-    // Set up grid cells
-    int oindex = 0;
-    int rindex = 0;
-    int gindex = 0;
-    int bindex = 0;
-
-    float xy = model->getCellWidth();
-    for (int y = 0; y < model->getArenaHeightInCells(); y++) {
-        for (int x = 0; x < model->getArenaWidthInCells(); x++) {
+    auto xy = model->getCellWidth();
+    for (auto y = 0; y < model->getArenaHeightInCells(); y++) {
+        for (auto x = 0; x < model->getArenaWidthInCells(); x++) {
             switch (model->getOccupancy(x, y)) {
             case OccupancyType::OBSTACLE:
-                obstacles[oindex++] = {(x * xy), (y * xy), xy, xy};
+                renderObjects->obstacles.push_back({(x * xy), (y * xy), xy, xy});
                 break;
             case OccupancyType::RED:
-                reds[rindex++] = {(x * xy), (y * xy), xy, xy};
+                renderObjects->reds.push_back({(x * xy), (y * xy), xy, xy});
                 break;
             case OccupancyType::GREEN:
-                greens[gindex++] = {(x * xy), (y * xy), xy, xy};
+                renderObjects->greens.push_back({(x * xy), (y * xy), xy, xy});
                 break;
             case OccupancyType::BLUE:
-                blues[bindex++] = {(x * xy), (y * xy), xy, xy};
+                renderObjects->blues.push_back({(x * xy), (y * xy), xy, xy});
                 break;
             case OccupancyType::ROBOT:
             case OccupancyType::EMPTY:
@@ -165,25 +118,26 @@ void ArenaModelView::buildGui() {
         }
     }
 
-    Sint16 r = round(model->getCellWidth() * 0.3);
+    auto r = round(model->getCellWidth() * 0.3);
     robotRender->body.r = r;
-    Sint16 rs = round(model->getCellWidth() * 0.045);
+
+    auto rs = round(model->getCellWidth() * 0.045);
     robotRender->sensor.r = rs;
 }
 
 void ArenaModelView::update() {
     // parameters
-    Sint16 x = robot->getX();
-    Sint16 y = robot->getY();
+    auto x = robot->getX();
+    auto y = robot->getY();
 
-    Sint16 robotH = round(robot->getHeadingInRadians()); // heading angle in radians
+    auto robotH = round(robot->getHeadingInRadians()); // heading angle in radians
 
-    float headingX = x + sin(robotH) * robotRender->body.r;
-    float headingY = y + cos(robotH) * robotRender->body.r;
+    auto headingX = x + sin(robotH) * robotRender->body.r;
+    auto headingY = y + cos(robotH) * robotRender->body.r;
 
-    float scale = robotRender->body.r * .9;
-    Sint16 rx = x + sin(robotH) * scale;
-    Sint16 ry = y + cos(robotH) * scale;
+    auto scale = robotRender->body.r * .9;
+    auto rx = x + sin(robotH) * scale;
+    auto ry = y + cos(robotH) * scale;
 
     // body circle
     robotRender->body.x = x;
@@ -202,6 +156,15 @@ void ArenaModelView::update() {
     robotRender->sensor.y = ry;
 }
 
+template <typename F, typename FF, typename V>
+void ArenaModelView::drawC(F fn, FF fnfn, std::vector<V> prims, SDL_Color c) {
+    fn(renderer, c.r, c.g, c.b, c.a);
+    fnfn(renderer, prims.data(), prims.size());
+}
+
+// template <typename F>
+// void drawG(F fn) {}
+
 void ArenaModelView::mainLoop() {
     SDL_Event event = {0};
 
@@ -213,7 +176,7 @@ void ArenaModelView::mainLoop() {
         // UPDATE LOGIC
 
         // Draw background
-        SDL_SetRenderDrawColor(renderer, LAY_COLOUR(rc::OFF_WHITE));
+        SDL_SetRenderDrawColor(renderer, rc::OFF_WHITE.r, rc::OFF_WHITE.g, rc::OFF_WHITE.b, rc::OFF_WHITE.a);
 
         // Clears the screen
         SDL_RenderClear(renderer);
@@ -221,25 +184,19 @@ void ArenaModelView::mainLoop() {
         // DRAW LOGIC
 
         // Draw grid cells
-        SDL_SetRenderDrawColor(renderer, LAY_COLOUR(rc::OBSTACLE));
-        SDL_RenderFillRectsF(renderer, obstacles, model->getObstacleCount());
-        SDL_SetRenderDrawColor(renderer, LAY_COLOUR(rc::RED));
-        SDL_RenderFillRectsF(renderer, reds, model->getRedCount());
-        SDL_SetRenderDrawColor(renderer, LAY_COLOUR(rc::GREEN));
-        SDL_RenderFillRectsF(renderer, greens, model->getGreenCount());
-        SDL_SetRenderDrawColor(renderer, LAY_COLOUR(rc::BLUE));
-        SDL_RenderFillRectsF(renderer, blues, model->getBlueCount());
+        drawC(SDL_SetRenderDrawColor, SDL_RenderFillRectsF, renderObjects->obstacles, rc::OBSTACLE);
+        drawC(SDL_SetRenderDrawColor, SDL_RenderFillRectsF, renderObjects->reds, rc::RED);
+        drawC(SDL_SetRenderDrawColor, SDL_RenderFillRectsF, renderObjects->greens, rc::GREEN);
+        drawC(SDL_SetRenderDrawColor, SDL_RenderFillRectsF, renderObjects->blues, rc::BLUE);
 
         // Draw Lines
-        SDL_SetRenderDrawColor(renderer, LAY_COLOUR(rc::LINE_BLUE));
-        for (int i = 0; i < pointCount; i += 2)
-            SDL_RenderDrawLine(renderer, LAY_POINTS(points, i));
+        drawC(SDL_SetRenderDrawColor, SDL_RenderDrawRectsF, renderObjects->points, rc::LINE_BLUE);
 
         // Draw Robots
-        filledCircleRGBA(renderer, LAY_CIRCLE(robotRender->body), LAY_COLOUR(rc::OFF_BLACK));
-        SDL_SetRenderDrawColor(renderer, LAY_COLOUR(rc::OFF_WHITE));
-        SDL_RenderDrawLineF(renderer, LAY_LINE(robotRender->center, robotRender->radius));
-        filledCircleRGBA(renderer, LAY_CIRCLE(robotRender->sensor), LAY_COLOUR(rc::OFF_WHITE));
+        filledCircleRGBA(renderer, robotRender->body.x, robotRender->body.y, robotRender->body.r, rc::OFF_BLACK.r, rc::OFF_BLACK.g, rc::OFF_BLACK.b, rc::OFF_BLACK.a);
+        SDL_SetRenderDrawColor(renderer, rc::OFF_WHITE.r, rc::OFF_WHITE.g, rc::OFF_WHITE.b, rc::OFF_WHITE.a);
+        SDL_RenderDrawLineF(renderer, robotRender->center.x, robotRender->center.y, robotRender->radius.x, robotRender->radius.y);
+        filledCircleRGBA(renderer, robotRender->sensor.x, robotRender->sensor.y, robotRender->sensor.r, rc::OFF_WHITE.r, rc::OFF_WHITE.g, rc::OFF_WHITE.b, rc::OFF_WHITE.a);
 
         // DRAW LOGIC
 

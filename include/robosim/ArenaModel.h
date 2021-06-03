@@ -24,42 +24,29 @@ class MyGridCell;
 
 namespace arenamodel {
 
+using Grid = std::vector<std::vector<mygridcell::MyGridCell<mygridcell::OccupancyType>>>;
+
 class ArenaModel {
   private:
     const char *configFileName;
     int arenaWidthInCells;
     int arenaHeightInCells;
-
-    std::vector<std::vector<mygridcell::MyGridCell<mygridcell::OccupancyType>>> grid;
+    float cellWidth;
+    Grid grid;
 
     bool setOccupancy(int, int, mygridcell::OccupancyType);
     bool parseConfigLine(std::string);
     bool readConfig();
-
     std::vector<std::string> tokenize(std::string);
-
-    int numOfObstacles;
-    int numOfReds;
-    int numOfGreens;
-    int numOfBlues;
-
-    float cellWidth;
 
   public:
     ArenaModel(const char *, int, int);
     ~ArenaModel();
 
-    int getArenaWidthInCells();
-    int getArenaHeightInCells();
-
     mygridcell::OccupancyType getOccupancy(int, int);
     std::string toString();
-
-    int getObstacleCount();
-    int getRedCount();
-    int getGreenCount();
-    int getBlueCount();
-
+    int getArenaWidthInCells();
+    int getArenaHeightInCells();
     float getCellWidth();
 };
 

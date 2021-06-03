@@ -6,28 +6,19 @@
 #include <sstream>
 #include <string>
 
-#define SIZE 800
-
 using arenamodel::ArenaModel;
-using mygridcell::MyGridCell;
 using mygridcell::OccupancyType;
+using Cell = mygridcell::MyGridCell<OccupancyType>;
 
+static constexpr auto SIZE = 800;
 static const std::regex reg("\\s*,\\s*");
 
-ArenaModel::ArenaModel(const char *configFileName, int arenaWidth, int arenaHeight) {
+ArenaModel::ArenaModel(const char *configFileName, int arenaWidth, int arenaHeight) : grid(arenaHeight, std::vector<Cell>(arenaWidth, Cell::getEmptyCell())) {
     arenaWidthInCells = arenaWidth;
     arenaHeightInCells = arenaHeight;
     this->configFileName = configFileName;
 
-    cellWidth = SIZE / (float)arenaHeightInCells;
-
-    for (int i = 0; i < arenaHeight; i++) {
-        std::vector<MyGridCell<OccupancyType>> row;
-        for (int j = 0; j < arenaWidth; j++) {
-            row.push_back(MyGridCell<OccupancyType>::getEmptyCell());
-        }
-        grid.push_back(row);
-    }
+    cellWidth = SIZE / arenaHeightInCells;
 
     readConfig();
 }
@@ -44,11 +35,11 @@ int ArenaModel::getArenaHeightInCells() {
 }
 
 bool ArenaModel::setOccupancy(int colPos, int rowPos, OccupancyType type) {
-    bool result = false;
+    auto result = false;
 
     // Check the bounds of the col and row pos
-    if ((rowPos >= 0) && (rowPos < (int)grid.size())) {
-        if ((colPos >= 0) && (colPos < (int)grid.size())) {
+    if (rowPos >= 0 && rowPos < (int)grid.size()) {
+        if (colPos >= 0 && colPos < (int)grid.size()) {
             // Only change the occupancy of a cell if it is empty
             // Note, separate methods will be used when modelling the robot
             if (grid.at(rowPos).at(colPos).isEmpty()) {
@@ -63,8 +54,8 @@ bool ArenaModel::setOccupancy(int colPos, int rowPos, OccupancyType type) {
 
 OccupancyType ArenaModel::getOccupancy(int colPos, int rowPos) {
     // Check the bounds of the col and row pos
-    if ((rowPos >= 0) && (rowPos < (int)grid.size())) {
-        if ((colPos >= 0) && (colPos < (int)grid.size())) {
+    if (rowPos >= 0 && rowPos < (int)grid.size()) {
+        if (colPos >= 0 && colPos < (int)grid.size()) {
             return grid.at(rowPos).at(colPos).getCellType();
         }
     }
@@ -73,7 +64,7 @@ OccupancyType ArenaModel::getOccupancy(int colPos, int rowPos) {
 }
 
 bool ArenaModel::parseConfigLine(std::string line) {
-    std::vector<std::string> tokens = tokenize(line);
+    auto tokens = tokenize(line);
 
     int colPos;
     int rowPos;
@@ -85,21 +76,17 @@ bool ArenaModel::parseConfigLine(std::string line) {
     ss << tokens.at(1);
     ss >> rowPos;
 
-    std::string occTypeStr = tokens.at(2);
-    OccupancyType occ = OccupancyType::EMPTY;
+    auto occTypeStr = tokens.at(2);
+    auto occ = OccupancyType::EMPTY;
 
     if (occTypeStr == "OBSTACLE") {
         occ = OccupancyType::OBSTACLE;
-        numOfObstacles++;
     } else if (occTypeStr == "BLUE") {
         occ = OccupancyType::BLUE;
-        numOfBlues++;
     } else if (occTypeStr == "GREEN") {
         occ = OccupancyType::GREEN;
-        numOfGreens++;
     } else if (occTypeStr == "RED") {
         occ = OccupancyType::RED;
-        numOfReds++;
     }
 
     if (occ != OccupancyType::EMPTY && !setOccupancy(colPos, rowPos, occ)) {
@@ -127,7 +114,7 @@ bool ArenaModel::readConfig() {
 
     std::string line;
 
-    bool result = true;
+    auto result = true;
 
     // Use a while loop together with the getline() function to read the file line by line
     while (getline(file, line)) {
@@ -141,24 +128,12 @@ bool ArenaModel::readConfig() {
     return result;
 }
 
-int ArenaModel::getObstacleCount() {
-    return numOfObstacles;
-}
-int ArenaModel::getRedCount() {
-    return numOfReds;
-}
-int ArenaModel::getGreenCount() {
-    return numOfGreens;
-}
-int ArenaModel::getBlueCount() {
-    return numOfBlues;
-}
 float ArenaModel::getCellWidth() {
     return cellWidth;
 }
 
 std::string ArenaModel::toString() {
-    std::string result = "Arena: " + std::to_string(getArenaWidthInCells()) + " x " + std::to_string(getArenaHeightInCells()) + "\n";
+    auto result = "Arena: " + std::to_string(getArenaWidthInCells()) + " x " + std::to_string(getArenaHeightInCells()) + "\n";
 
     for (auto var : grid) {
         for (auto c : var) {

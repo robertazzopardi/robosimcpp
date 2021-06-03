@@ -12,13 +12,15 @@
 #ifndef __ARENA_MODEL_VIEW__
 #define __ARENA_MODEL_VIEW__
 
-typedef struct SDL_Window SDL_Window;
-typedef struct SDL_Renderer SDL_Renderer;
-typedef struct SDL_FPoint SDL_FPoint;
-typedef struct SDL_FRect SDL_FRect;
-typedef union SDL_Event SDL_Event;
+#include <memory>
+#include <vector>
 
-typedef struct Robot Robot;
+struct SDL_Window;
+struct SDL_Renderer;
+struct SDL_Color;
+union SDL_Event;
+
+struct Robot;
 
 namespace simulatedrobot {
 class SimulatedRobot;
@@ -28,21 +30,19 @@ namespace arenamodel {
 class ArenaModel;
 } // namespace arenamodel
 
+struct RenderObjects;
+
 namespace arenamodelview {
 
 class ArenaModelView {
   private:
     arenamodel::ArenaModel *model;
     simulatedrobot::SimulatedRobot *robot;
+    std::unique_ptr<Robot> robotRender;
+    std::unique_ptr<RenderObjects> renderObjects;
 
     SDL_Window *window;
     SDL_Renderer *renderer;
-
-    SDL_FPoint *points;
-    SDL_FRect *obstacles;
-    SDL_FRect *reds;
-    SDL_FRect *greens;
-    SDL_FRect *blues;
 
     int pointCount;
 
@@ -50,14 +50,15 @@ class ArenaModelView {
 
     void buildGui();
 
-    Robot *robotRender;
     void update();
+
+    template <typename F, typename FF, typename V>
+    void drawC(F, FF, std::vector<V>, SDL_Color);
 
   public:
     ArenaModelView(arenamodel::ArenaModel *, simulatedrobot::SimulatedRobot *);
     ~ArenaModelView();
 
-    void setRobot(simulatedrobot::SimulatedRobot *);
     void mainLoop();
 };
 

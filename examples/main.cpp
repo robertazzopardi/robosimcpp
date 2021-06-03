@@ -10,6 +10,7 @@ class Robot : public robosim::RobotMonitor {
     void run(bool *in) {
         std::cout << "Hello Robot " << *in << std::endl;
         travel();
+        // rotate(90);
     }
 };
 

@@ -12,6 +12,8 @@
 #ifndef __ENV_CONTROLLER__
 #define __ENV_CONTROLLER__
 
+#include <memory>
+
 namespace robosim {
 
 class RobotMonitor;
@@ -20,9 +22,9 @@ class EnvController {
   private:
     robosim::RobotMonitor *myMonitor;
 
-    // Store as unknow type, purely to hide the declarations
-    void *view;  // ArenaModelView
-    void *model; // ArenaModel
+    // Store as void smart pointer type, purely to hide the declarations
+    std::shared_ptr<void> model;
+    std::shared_ptr<void> view;
 
   public:
     EnvController(const char *, int, int, RobotMonitor *);

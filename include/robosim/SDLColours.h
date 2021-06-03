@@ -16,17 +16,15 @@
 
 namespace sdlcolours {
 
-namespace colour {
-static const SDL_Color RED = {255, 0, 0, SDL_ALPHA_OPAQUE};
-static const SDL_Color GREEN = {0, 255, 0, SDL_ALPHA_OPAQUE};
-static const SDL_Color BLUE = {0, 0, 255, SDL_ALPHA_OPAQUE};
-static const SDL_Color BLACK = {0, 0, 0, SDL_ALPHA_OPAQUE};
-static const SDL_Color WHITE = {255, 255, 255, SDL_ALPHA_OPAQUE};
-static const SDL_Color OFF_WHITE = {245, 245, 245, SDL_ALPHA_OPAQUE};
-static const SDL_Color OFF_BLACK = {48, 48, 48, SDL_ALPHA_OPAQUE};
-static const SDL_Color LINE_BLUE = {0, 100, 255, SDL_ALPHA_OPAQUE};
-static const SDL_Color OBSTACLE = {120, 120, 120, SDL_ALPHA_OPAQUE};
-} // namespace colour
+static constexpr SDL_Color RED = {255, 0, 0, SDL_ALPHA_OPAQUE};
+static constexpr SDL_Color GREEN = {0, 255, 0, SDL_ALPHA_OPAQUE};
+static constexpr SDL_Color BLUE = {0, 0, 255, SDL_ALPHA_OPAQUE};
+static constexpr SDL_Color BLACK = {0, 0, 0, SDL_ALPHA_OPAQUE};
+static constexpr SDL_Color WHITE = {255, 255, 255, SDL_ALPHA_OPAQUE};
+static constexpr SDL_Color OFF_WHITE = {245, 245, 245, SDL_ALPHA_OPAQUE};
+static constexpr SDL_Color OFF_BLACK = {48, 48, 48, SDL_ALPHA_OPAQUE};
+static constexpr SDL_Color LINE_BLUE = {0, 100, 255, SDL_ALPHA_OPAQUE};
+static constexpr SDL_Color OBSTACLE = {120, 120, 120, SDL_ALPHA_OPAQUE};
 
 } // namespace sdlcolours
 

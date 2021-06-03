@@ -14,7 +14,6 @@
 
 namespace mygridcell {
 
-static const char *occupancyTypes[] = {"OBSTACLE", "EMPTY", "ROBOT", "RED", "BLUE", "GREEN", "UNKNOWN"};
 static const char *occupancySymbols[] = {" # ", " _ ", " * ", " r ", " b ", " g ", " ? "};
 
 enum OccupancyType : int {
