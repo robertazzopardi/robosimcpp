@@ -93,6 +93,7 @@ Temporary Items
 .apdisk
 
 # Vscode
+.vscode
 .vscode/*
 !.vscode/tasks.json
 !.vscode/launch.json

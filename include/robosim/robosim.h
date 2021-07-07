@@ -9,10 +9,10 @@
  *
  */
 
-#ifndef __ROBOSIM__
-#define __ROBOSIM__
+#ifndef __ROBOSIM_H__
+#define __ROBOSIM_H__
 
 #include "EnvController.h"
 #include "RobotMonitor.h"
 
-#endif // __ROBOSIM__
+#endif // __ROBOSIM_H__

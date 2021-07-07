@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __ENV_CONTROLLER__
-#define __ENV_CONTROLLER__
+#ifndef __ENV_CONTROLLER_H__
+#define __ENV_CONTROLLER_H__
 
 #include <memory>
 
@@ -35,4 +35,4 @@ class EnvController {
 
 } // namespace robosim
 
-#endif // !__ENV_CONTROLLER__
+#endif // !__ENV_CONTROLLER_H__

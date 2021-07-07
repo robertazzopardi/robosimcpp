@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __ARENA_MODEL_VIEW__
-#define __ARENA_MODEL_VIEW__
+#ifndef __ARENA_MODEL_VIEW_H__
+#define __ARENA_MODEL_VIEW_H__
 
 #include <memory>
 #include <vector>
@@ -18,9 +18,8 @@
 struct SDL_Window;
 struct SDL_Renderer;
 struct SDL_Color;
-union SDL_Event;
 
-struct Robot;
+struct RobotRender;
 
 namespace simulatedrobot {
 class SimulatedRobot;
@@ -38,7 +37,7 @@ class ArenaModelView {
   private:
     arenamodel::ArenaModel *model;
     simulatedrobot::SimulatedRobot *robot;
-    std::unique_ptr<Robot> robotRender;
+    std::unique_ptr<RobotRender> robotRender;
     std::unique_ptr<RenderObjects> renderObjects;
 
     SDL_Window *window;
@@ -46,22 +45,21 @@ class ArenaModelView {
 
     int pointCount;
 
-    static bool handleEvents(SDL_Event *);
-
     void buildGui();
-
-    void update();
 
     template <typename F, typename FF, typename V>
     void drawC(F, FF, std::vector<V>, SDL_Color);
 
   public:
+    static bool running;
+
     ArenaModelView(arenamodel::ArenaModel *, simulatedrobot::SimulatedRobot *);
     ~ArenaModelView();
 
+    void update();
     void mainLoop();
 };
 
 } // namespace arenamodelview
 
-#endif // !__ARENA_MODEL_VIEW__
+#endif // !__ARENA_MODEL_VIEW_H__

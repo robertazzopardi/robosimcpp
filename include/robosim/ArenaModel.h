@@ -1,7 +1,8 @@
 /**
  * @file ArenaModel.h
  * @author Robert Azzopardi-Yashi (robertazzopardi@icloud.com)
- * @brief The model for the arena, includeing a parser for including obstacles and other artifacts in the arena model
+ * @brief The model for the arena, includeing a parser for including obstacles
+ * and other artifacts in the arena model
  * @version 0.1
  * @date 2021-05-27
  *
@@ -9,8 +10,8 @@
  *
  */
 
-#ifndef __ARENA_MODEL__
-#define __ARENA_MODEL__
+#ifndef __ARENA_MODEL_H__
+#define __ARENA_MODEL_H__
 
 #include <iosfwd>
 #include <vector>
@@ -18,13 +19,13 @@
 namespace mygridcell {
 enum OccupancyType : int;
 
-template <typename T>
-class MyGridCell;
+template <typename T> class MyGridCell;
 } // namespace mygridcell
 
 namespace arenamodel {
 
-using Grid = std::vector<std::vector<mygridcell::MyGridCell<mygridcell::OccupancyType>>>;
+using Grid =
+    std::vector<std::vector<mygridcell::MyGridCell<mygridcell::OccupancyType>>>;
 
 class ArenaModel {
   private:
@@ -52,4 +53,4 @@ class ArenaModel {
 
 } // namespace arenamodel
 
-#endif // !__ARENA_MODEL__
+#endif // !__ARENA_MODEL_H__

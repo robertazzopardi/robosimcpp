@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __SDL_COLOURS__
-#define __SDL_COLOURS__
+#ifndef __SDL_COLOURS_H__
+#define __SDL_COLOURS_H__
 
 #include <SDL_Pixels.h>
 
@@ -28,4 +28,4 @@ static constexpr SDL_Color OBSTACLE = {120, 120, 120, SDL_ALPHA_OPAQUE};
 
 } // namespace sdlcolours
 
-#endif // !__SDL_COLOURS__
+#endif // !__SDL_COLOURS_H__
