@@ -20,7 +20,7 @@ class ArenaModel;
 
 namespace arenamodelview {
 class ArenaModelView;
-}
+} // namespace arenamodelview
 
 namespace simulatedrobot {
 
@@ -62,14 +62,16 @@ class SimulatedRobot {
      */
     void setHeading(int);
 
+    int delay;
+
   public:
     // bool shouldStop = false;
 
-    SimulatedRobot(arenamodel::ArenaModel *);
+    SimulatedRobot(arenamodel::ArenaModel *, int);
     ~SimulatedRobot();
 
     auto getRobotBodySize();
-    int getSensorBodySize();
+    auto getSensorBodySize();
 
     /**
      * Pose: obtains the current position of the robot
@@ -88,6 +90,18 @@ class SimulatedRobot {
      * @return the heading in radians
      */
     double getHeadingInRadians();
+
+    /**
+     * Get the direction the sensor is facing in degrees
+     */
+    int getDirection();
+
+    /**
+     * Get the direction the sensor is facing in radians
+     */
+    double getDirectionInRadians();
+
+    bool setDirection(int);
 
     /**
      * Pose: obtains the current position of the robot (in mm)
@@ -158,9 +172,6 @@ class SimulatedRobot {
      * @return Color
      */
     SDL_Color getCSenseColor();
-
-    bool setDirection(int);
-    int getDirection();
 
     /**
      * float getUSenseRange();

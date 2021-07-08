@@ -47,8 +47,8 @@ class ArenaModelView {
 
     void buildGui();
 
-    template <typename F, typename FF, typename V>
-    void drawC(F, FF, std::vector<V>, SDL_Color);
+    template <typename FF, typename V>
+    void renderColourDraw(FF, std::vector<V>, SDL_Color);
 
   public:
     static bool running;

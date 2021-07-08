@@ -25,15 +25,19 @@ template <typename T> class MyGridCell {
 
   public:
     explicit MyGridCell(T type) { cellType = type; }
+
     T getCellType() { return cellType; }
+
     void setCellType(T type) { cellType = type; }
+
     void setEmpty() { cellType = mygridcell::OccupancyType::EMPTY; }
+
     bool isEmpty() { return cellType == OccupancyType::EMPTY; }
+
     const char *toString() { return occupancySymbols[cellType]; }
 
     static MyGridCell getEmptyCell() {
-        MyGridCell emptyCell(OccupancyType::EMPTY);
-        return emptyCell;
+        return static_cast<MyGridCell>(OccupancyType::EMPTY);
     }
 };
 

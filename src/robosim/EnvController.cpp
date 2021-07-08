@@ -11,6 +11,7 @@
 #include "EnvController.h"
 #include "ArenaModel.h"
 #include "ArenaModelView.h"
+#include "Common.h"
 #include "RobotMonitor.h"
 #include "SimulatedRobot.h"
 #include <future>
@@ -23,19 +24,24 @@ using robosim::EnvController;
 using robosim::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
 
+constexpr auto Arena =
+    typecasting::make_ptr<ArenaModel, const char *, int, int>;
+constexpr auto View =
+    typecasting::make_ptr<ArenaModelView, ArenaModel *, SimulatedRobot *>;
+constexpr auto ModelView = typecasting::cast_ptr<ArenaModelView>;
+constexpr auto SimRobot = typecasting::cast<SimulatedRobot *>;
+constexpr auto AModel = typecasting::cast<ArenaModel *>;
+
 EnvController::EnvController(const char *confFileName, int cols, int rows,
                              RobotMonitor *monitor) {
-    model = std::make_shared<ArenaModel>(confFileName, cols, rows);
+    model = Arena(confFileName, cols, rows);
 
     myMonitor = monitor;
     myMonitor->setArenaModel(model);
 
-    view = std::make_shared<ArenaModelView>(
-        static_cast<ArenaModel *>(model.get()),
-        static_cast<SimulatedRobot *>(myMonitor->getRobot()));
+    view = View(AModel(model.get()), SimRobot(myMonitor->getRobot()));
 
-    std::cout << static_cast<ArenaModel *>(model.get())->toString()
-              << std::endl;
+    std::cout << AModel(model.get())->toString() << std::endl;
 }
 
 EnvController::~EnvController() {}
@@ -44,9 +50,8 @@ void EnvController::updateEnv() {
     auto resRobotMonitor =
         std::async(&RobotMonitor::run, myMonitor, &ArenaModelView::running);
     auto resSimulatedRobot =
-        std::async(&SimulatedRobot::run,
-                   static_cast<SimulatedRobot *>(myMonitor->getRobot()),
-                   std::static_pointer_cast<ArenaModelView>(view).get());
+        std::async(&SimulatedRobot::run, SimRobot(myMonitor->getRobot()),
+                   ModelView(view).get());
 
-    std::static_pointer_cast<ArenaModelView>(view)->mainLoop();
+    ModelView(view)->mainLoop();
 }

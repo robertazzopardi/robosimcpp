@@ -11,47 +11,48 @@
 #include "SimulatedRobot.h"
 #include "ArenaModel.h"
 #include "ArenaModelView.h"
+#include "Common.h"
 #include "MyGridCell.h"
-#include "SDLColours.h"
 #include <SDL_pixels.h>
-#include <chrono>
-#include <exception>
+#include <SDL_timer.h>
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
 #include <string>
-#include <thread>
 
 // Java method of converting degrees to radians. Multiply degrees by this
-static constexpr auto DEGREES_TO_RADIANS = 0.017453292519943295;
+constexpr auto DEGREES_TO_RADIANS = 0.017453292519943295;
 
 // Physical Characteristics of the Robot
-static constexpr auto LEFT_SENSORANGLE =
-    -90; // Leftmost angle that the sensor can be set
-static constexpr auto RIGHT_SENSORANGLE =
-    90; // Rightmost angle that the sensor can be set
-static constexpr auto LOWER_TRAVELSPEED =
-    10; // Min speed of robot in mm per second
-static constexpr auto UPPER_TRAVELSPEED =
-    100; // Max speed of robot in mm per second
-static constexpr auto RADIUS_ROBOTBODY =
-    100; // The robot is modeled as a circle with this radius in mm.
-static constexpr auto RADIUS_SENSORBODY =
-    20; // The robot sensor modeled as a circle with this radius in mm.
-static constexpr auto UPDATE_DELAY =
-    100; // Update Delay is 0.1 second, to simplify update calculations
-static constexpr auto ROTATION_SPEED =
-    50; // rotation speed should be fixed & independent of travel speed
-static constexpr auto US_SENSOR_MAX_RANGE = 2550; // Max range in mm
-static constexpr auto UPDATE_RATE = UPDATE_DELAY / 1000.0;
+
+// Leftmost angle that the sensor can be set
+constexpr auto LEFT_SENSORANGLE = -90;
+// Rightmost angle that the sensor can be set
+constexpr auto RIGHT_SENSORANGLE = 90;
+// Min speed of robot in mm per second
+constexpr auto LOWER_TRAVELSPEED = 10;
+// Max speed of robot in mm per second
+constexpr auto UPPER_TRAVELSPEED = 100;
+// The robot is modeled as a circle with this radius in mm.
+constexpr auto RADIUS_ROBOTBODY = 100;
+// The robot sensor modeled as a circle with this radius in mm.
+constexpr auto RADIUS_SENSORBODY = 20;
+// Update Delay is 0.1 second, to simplify update calculations
+constexpr auto UPDATE_DELAY = 100;
+// Rotation speed should be fixed & independent of travel speed
+constexpr auto ROTATION_SPEED = 50;
+// Maximum range of the sensor in mm
+constexpr auto US_SENSOR_MAX_RANGE = 2550;
+constexpr auto UPDATE_RATE = UPDATE_DELAY / 1000.0;
 
 using arenamodel::ArenaModel;
 using arenamodelview::ArenaModelView;
 using mygridcell::OccupancyType;
 using simulatedrobot::SimulatedRobot;
 
-SimulatedRobot::SimulatedRobot(ArenaModel *model) : attributes{} {
+SimulatedRobot::SimulatedRobot(ArenaModel *model, int delay) : attributes{} {
     this->model = model;
+    this->delay = delay;
 
     auto center = static_cast<int>((3 * model->getCellWidth()) / 2);
     // Position the robot in the center of the (1,1) cell
@@ -59,7 +60,7 @@ SimulatedRobot::SimulatedRobot(ArenaModel *model) : attributes{} {
     attributes.yLocation = center;     // center of (1, 1)
     setTravelSpeed(LOWER_TRAVELSPEED); // i->e-> no speed->
     setHeading(0);                     // i->e-> due north
-    // attributes.rotationSpeedPerUpdate = ROTATION_SPEED * UPDATE_RATE;
+
     attributes.rotationSpeedPerUpdate =
         static_cast<double>(ROTATION_SPEED / 10);
     // Set any other parameters
@@ -71,7 +72,7 @@ SimulatedRobot::~SimulatedRobot() {}
 
 auto SimulatedRobot::getRobotBodySize() { return RADIUS_ROBOTBODY; }
 
-int SimulatedRobot::getSensorBodySize() { return RADIUS_SENSORBODY; }
+auto SimulatedRobot::getSensorBodySize() { return RADIUS_SENSORBODY; }
 
 /* =========================================================================
  * Pose Methods
@@ -82,6 +83,10 @@ int SimulatedRobot::getHeading() { return attributes.heading; }
 
 double SimulatedRobot::getHeadingInRadians() {
     return attributes.headingInRadians;
+}
+
+double SimulatedRobot::getDirectionInRadians() {
+    return attributes.currentSensorAngle * DEGREES_TO_RADIANS;
 }
 
 void SimulatedRobot::setHeading(int heading) {
@@ -146,8 +151,9 @@ bool SimulatedRobot::isAtRotation() {
 bool SimulatedRobot::isBumperPressed() { return attributes.bumperPressed; }
 
 SDL_Color SimulatedRobot::getCSenseColor() {
-    auto colPos = getX() / model->getCellWidth();
-    auto rowPos = getY() / model->getCellWidth();
+    auto cellWidth = model->getCellWidth();
+    auto colPos = getX() / cellWidth;
+    auto rowPos = getY() / cellWidth;
 
     switch (model->getOccupancy(colPos, rowPos)) {
     case OccupancyType::RED:
@@ -178,6 +184,7 @@ bool SimulatedRobot::setDirection(int degrees) {
         return false;
     }
     attributes.sensorDirection = degrees;
+
     return true;
 }
 
@@ -213,19 +220,21 @@ bool SimulatedRobot::isColliding(int xPos, int yPos, int xDelta, int yDelta) {
     auto w = model->getCellWidth(); // cell width
     auto h = model->getCellWidth(); // cell height
 
+    auto x = xPos + xDelta;
+    auto y = yPos + yDelta;
+
+    auto r = (model->getCellWidth() / 3) * .9;
+
     if (xDelta >= 0) {
-        xBound = xPos + xDelta +
-                 RADIUS_ROBOTBODY; // check on the right most part of the robot
+        xBound = x + r; // check on the right most part of the robot
     } else {
-        xBound = xPos + xDelta -
-                 RADIUS_ROBOTBODY; // check on the left most part of the robot
+        xBound = x - r; // check on the left most part of the robot
     }
-    if (yDelta >= 0) { // check up / up left / left
-        yBound = yPos + yDelta +
-                 RADIUS_ROBOTBODY; // check on the bottom most part of the robot
-    } else {                       // check left / down left / down
-        yBound = yPos + yDelta -
-                 RADIUS_ROBOTBODY; // check on the top most part of the robot
+
+    if (yDelta >= 0) {  // check up / up left / left
+        yBound = y + r; // check on the bottom most part of the robot
+    } else {            // check left / down left / down
+        yBound = y - r; // check on the top most part of the robot
     }
 
     if (model->getOccupancy(xBound / w, yPos / h) ==
@@ -247,7 +256,6 @@ bool SimulatedRobot::isColliding(int xPos, int yPos, int xDelta, int yDelta) {
 // Robot Update
 
 void SimulatedRobot::run(arenamodelview::ArenaModelView *view) {
-    // while (view->running) {
     while (ArenaModelView::running) {
         auto deltaDist = 0;     // Represents the distance to travel
         auto deltaRotation = 0; // Represents the rotation distance to rotate
@@ -275,13 +283,14 @@ void SimulatedRobot::run(arenamodelview::ArenaModelView *view) {
                 deltaDist = travelSegment;
                 attributes.currentDistanceToDestination -= travelSegment;
             }
+
             // Need to check if we are about to run into an obstacle
             auto xDelta = round(sin(attributes.headingInRadians) * deltaDist);
             auto yDelta = round(cos(attributes.headingInRadians) * deltaDist);
 
             // Check for collisions
-            // attributes.bumperPressed = isColliding(attributes.xLocation,
-            // attributes.yLocation, xDelta, yDelta);
+            attributes.bumperPressed = isColliding(
+                attributes.xLocation, attributes.yLocation, xDelta, yDelta);
             if (!attributes.bumperPressed) {
                 // Update x & y position
                 attributes.xLocation += xDelta;
@@ -314,15 +323,15 @@ void SimulatedRobot::run(arenamodelview::ArenaModelView *view) {
         if (attributes.currentSensorAngle != attributes.sensorDirection) {
             // we need to move it
             if (attributes.sensorDirection > attributes.currentSensorAngle) {
-                if ((attributes.sensorDirection -
-                     attributes.currentSensorAngle) > rotationSegment) {
+                if (attributes.sensorDirection - attributes.currentSensorAngle >
+                    rotationSegment) {
                     attributes.currentSensorAngle += rotationSegment;
                 } else {
                     attributes.currentSensorAngle = attributes.sensorDirection;
                 }
             } else {
-                if ((attributes.currentSensorAngle -
-                     attributes.sensorDirection) > rotationSegment) {
+                if (attributes.currentSensorAngle - attributes.sensorDirection >
+                    rotationSegment) {
                     attributes.currentSensorAngle -= rotationSegment;
                 } else {
                     attributes.currentSensorAngle = attributes.sensorDirection;
@@ -332,11 +341,6 @@ void SimulatedRobot::run(arenamodelview::ArenaModelView *view) {
 
         view->update();
 
-        try {
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds(UPDATE_DELAY));
-        } catch (const std::exception &e) {
-            std::cerr << e.what() << '\n';
-        }
+        SDL_Delay(delay);
     }
 }

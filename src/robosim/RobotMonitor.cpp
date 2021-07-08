@@ -10,12 +10,11 @@
  */
 #include "RobotMonitor.h"
 #include "ArenaModelView.h"
+#include "Common.h"
 #include "SimulatedRobot.h"
 #include <SDL_pixels.h>
-#include <chrono>
-#include <exception>
+#include <SDL_timer.h>
 #include <iostream>
-#include <thread>
 #include <type_traits>
 
 namespace arenamodel {
@@ -26,9 +25,14 @@ using arenamodel::ArenaModel;
 using arenamodelview::ArenaModelView;
 using robosim::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
+using typecasting::cast_ptr;
+
+constexpr auto Sim = cast_ptr<SimulatedRobot>;
+constexpr auto Arena = cast_ptr<ArenaModel>;
 
 RobotMonitor::RobotMonitor(int delay, bool verbose) {
     this->delay = delay;
+    std::cout << this->delay << std::endl;
     this->verbose = verbose;
 }
 
@@ -37,37 +41,35 @@ RobotMonitor::~RobotMonitor() {}
 void *RobotMonitor::getRobot() { return robot.get(); }
 
 void RobotMonitor::setArenaModel(std::shared_ptr<void> model) {
-    auto modeltmp = std::static_pointer_cast<ArenaModel>(model).get();
-    robot = std::make_shared<SimulatedRobot>(modeltmp);
+    auto modeltmp = Arena(model).get();
+    robot = std::make_shared<SimulatedRobot>(modeltmp, delay);
 }
 
 bool RobotMonitor::setTravelSpeed(int travelSpeed) {
-    return std::static_pointer_cast<SimulatedRobot>(robot)->setTravelSpeed(
-        travelSpeed);
+    return Sim(robot)->setTravelSpeed(travelSpeed);
 }
 
-void RobotMonitor::travel() {
-    std::static_pointer_cast<SimulatedRobot>(robot)->travel();
-    while (
-        ArenaModelView::running &&
-        !std::static_pointer_cast<SimulatedRobot>(robot)->isAtDestination()) {
-        try {
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-        } catch (const std::exception &e) {
-            std::cerr << e.what() << '\n';
-        }
+template <typename Condition> void RobotMonitor::wait(Condition condition) {
+    while (ArenaModelView::running && condition()) {
+        SDL_Delay(delay);
     }
 }
 
+void RobotMonitor::travel() {
+    Sim(robot)->travel();
+    wait([robot = robot] { return !Sim(robot)->isAtDestination(); });
+}
+
 void RobotMonitor::rotate(int degrees) {
-    std::static_pointer_cast<SimulatedRobot>(robot)->rotate(degrees);
-    while (ArenaModelView::running &&
-           !std::static_pointer_cast<SimulatedRobot>(robot)->isAtRotation()) {
-        try {
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-        } catch (const std::exception &e) {
-            std::cerr << e.what() << '\n';
-        }
+    Sim(robot)->rotate(degrees);
+    wait([robot = robot] { return !Sim(robot)->isAtRotation(); });
+}
+
+void RobotMonitor::setDirection(int degrees) {
+    if (Sim(robot)->setDirection(degrees)) {
+        wait([robot = robot, degrees = degrees] {
+            return Sim(robot)->getDirection() != degrees;
+        });
     }
 }
 
@@ -80,17 +82,11 @@ void RobotMonitor::rotate(int degrees) {
  * // Get heading angle wrt map
  */
 
-int RobotMonitor::getX() {
-    return std::static_pointer_cast<SimulatedRobot>(robot)->getX();
-}
+int RobotMonitor::getX() { return Sim(robot)->getX(); }
 
-int RobotMonitor::getY() {
-    return std::static_pointer_cast<SimulatedRobot>(robot)->getY();
-}
+int RobotMonitor::getY() { return Sim(robot)->getY(); }
 
-int RobotMonitor::getHeading() {
-    return std::static_pointer_cast<SimulatedRobot>(robot)->getHeading();
-}
+int RobotMonitor::getHeading() { return Sim(robot)->getHeading(); }
 
 /**
  * =========================================================================
@@ -109,37 +105,15 @@ int RobotMonitor::getHeading() {
  * the current sensed
  */
 
-bool RobotMonitor::isBumperPressed() {
-    return std::static_pointer_cast<SimulatedRobot>(robot)->isBumperPressed();
-}
+bool RobotMonitor::isBumperPressed() { return Sim(robot)->isBumperPressed(); }
 
 SDL_Color RobotMonitor::getCSenseColor() {
-    return std::static_pointer_cast<SimulatedRobot>(robot)->getCSenseColor();
+    return Sim(robot)->getCSenseColor();
 }
 
-int RobotMonitor::getUSenseRange() {
-    return std::static_pointer_cast<SimulatedRobot>(robot)->getUSenseRange();
-}
+int RobotMonitor::getUSenseRange() { return Sim(robot)->getUSenseRange(); }
 
-void RobotMonitor::setDirection(int degrees) {
-    if (std::static_pointer_cast<SimulatedRobot>(robot)->setDirection(
-            degrees)) {
-        while (
-            ArenaModelView::running &&
-            std::static_pointer_cast<SimulatedRobot>(robot)->getDirection() !=
-                degrees) {
-            try {
-                std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-            } catch (const std::exception &e) {
-                std::cerr << e.what() << '\n';
-            }
-        }
-    }
-}
-
-int RobotMonitor::getDirection() {
-    return std::static_pointer_cast<SimulatedRobot>(robot)->getDirection();
-}
+int RobotMonitor::getDirection() { return Sim(robot)->getDirection(); }
 
 // =========================================================================================
 /**
@@ -155,29 +129,27 @@ int RobotMonitor::getDirection() {
 // =========================================================================================
 
 void RobotMonitor::run(bool *running) {
-    auto r = std::static_pointer_cast<SimulatedRobot>(robot);
-    while (*running) {
-        if (verbose) {
-            std::cout << "Pose: (" << r->getX() << "," << r->getY()
-                      << ") with heading " << r->getHeading() << std::endl;
-            std::cout << "with a current travel speed of "
-                      << r->getTravelSpeed() << "mm per second" << std::endl;
-            std::cout << "Bumper is pressed: " << r->isBumperPressed()
-                      << std::endl;
-            std::cout << "Colour Sensor: " << r->getCSenseColor().r << ""
-                      << r->getCSenseColor().g << "" << r->getCSenseColor().b
-                      << "" << std::endl;
-            std::cout << "Range Sensor: " << r->getUSenseRange()
-                      << " with direction " << r->getDirection() << std::endl;
-            std::cout
-                << "==========================================================="
-                   "======="
-                << std::endl;
-        }
-        try {
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-        } catch (const std::exception &e) {
-            std::cerr << e.what() << '\n';
-        }
-    }
+    wait([this, running]() {
+        if (verbose)
+            debug();
+        return *running;
+    });
+}
+
+void RobotMonitor::debug() {
+    auto r = Sim(robot);
+    auto c = r->getCSenseColor();
+
+    std::cout << "Pose: (" << r->getX() << "," << r->getY() << ") with heading "
+              << r->getHeading() << std::endl;
+    std::cout << "with a current travel speed of " << r->getTravelSpeed()
+              << "mm per second" << std::endl;
+    std::cout << "Bumper is pressed: " << r->isBumperPressed() << std::endl;
+    std::cout << "Colour Sensor: " << c.r << " " << c.g << " " << c.b
+              << std::endl;
+    std::cout << "Range Sensor: " << r->getUSenseRange() << " with direction "
+              << r->getDirection() << std::endl;
+    std::cout << "==========================================================="
+                 "======="
+              << std::endl;
 }

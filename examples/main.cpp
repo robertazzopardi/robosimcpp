@@ -24,13 +24,15 @@ class Robot : public robosim::RobotMonitor {
     Robot(int delay, bool verbose) : robosim::RobotMonitor(delay, verbose) {}
     void run(bool *running __unused) {
         std::cout << "Hello Robot " << std::endl;
-        travel();
+        debug();
         rotate(90);
+        setDirection(90);
+        travel();
     }
 };
 
 int main(void) {
-    Robot robot(1000, false);
+    Robot robot(100, false);
 
     robosim::EnvController env(CONFIG_NAME, 7, 7, &robot);
 

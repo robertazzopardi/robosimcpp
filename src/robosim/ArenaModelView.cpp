@@ -10,8 +10,8 @@
  */
 #include "ArenaModelView.h"
 #include "ArenaModel.h"
+#include "Common.h"
 #include "MyGridCell.h"
-#include "SDLColours.h"
 #include "SimulatedRobot.h"
 #include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
@@ -34,7 +34,6 @@ using arenamodel::ArenaModel;
 using arenamodelview::ArenaModelView;
 using mygridcell::OccupancyType;
 using simulatedrobot::SimulatedRobot;
-namespace rc = sdlcolours;
 
 typedef struct {
     Sint16 x;
@@ -95,14 +94,17 @@ ArenaModelView::~ArenaModelView() {
 }
 
 void ArenaModelView::buildGui() {
+
+    auto cellWidth = model->getCellWidth();
+
     // Set up grid lines
     for (auto i = 0; i < pointCount / 4; i++) {
-        auto dxy = i * model->getCellWidth();
+        auto dxy = i * cellWidth;
         renderObjects->points.push_back({dxy, 0, SIZE, SIZE});
         renderObjects->points.push_back({0, dxy, SIZE, SIZE});
     }
 
-    auto xy = model->getCellWidth();
+    auto xy = cellWidth;
     for (auto y = 0; y < model->getArenaHeightInCells(); y++) {
         for (auto x = 0; x < model->getArenaWidthInCells(); x++) {
             switch (model->getOccupancy(x, y)) {
@@ -128,10 +130,10 @@ void ArenaModelView::buildGui() {
         }
     }
 
-    auto r = round(model->getCellWidth() * 0.3);
+    auto r = cellWidth / 3;
     robotRender->body.r = r;
 
-    auto rs = round(model->getCellWidth() * 0.045);
+    auto rs = r / 6;
     robotRender->sensor.r = rs;
 
     update();
@@ -143,33 +145,35 @@ void ArenaModelView::update() {
     auto y = robot->getY();
 
     auto angle = robot->getHeadingInRadians();
-
-    auto cosa = cos(angle);
-    auto sina = sin(angle);
-
-    auto headingX = x + sina * robotRender->body.r;
-    auto headingY = y + cosa * robotRender->body.r;
+    // std::cout << angle << std::endl;
 
     auto scale = robotRender->body.r * .9;
-    auto rx = x + sina * scale;
-    auto ry = y + cosa * scale;
+
+    auto rx = x + sin(angle) * scale;
+    auto ry = y + cos(angle) * scale;
 
     // body
     robotRender->body.x = x;
     robotRender->body.y = y;
 
     // heading line
-    robotRender->radius.x = headingX;
-    robotRender->radius.y = headingY;
+    robotRender->radius.x = rx;
+    robotRender->radius.y = ry;
 
     // sensor
-    robotRender->sensor.x = rx;
-    robotRender->sensor.y = ry;
+    auto sangle = robot->getDirectionInRadians() + angle;
+
+    auto sx = x + sin(sangle) * scale;
+    auto sy = y + cos(sangle) * scale;
+
+    robotRender->sensor.x = sx;
+    robotRender->sensor.y = sy;
 }
 
-template <typename F, typename FF, typename V>
-void ArenaModelView::drawC(F fn, FF fnfn, std::vector<V> prims, SDL_Color c) {
-    fn(renderer, c.r, c.g, c.b, c.a);
+template <typename FF, typename V>
+void ArenaModelView::renderColourDraw(FF fnfn, std::vector<V> prims,
+                                      SDL_Color c) {
+    SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
     fnfn(renderer, prims.data(), prims.size());
 }
 
@@ -189,13 +193,10 @@ void ArenaModelView::mainLoop() {
             }
         }
 
-        // UPDATE LOGIC
-        // update();
-        // UPDATE LOGIC
-
         // Draw background
-        SDL_SetRenderDrawColor(renderer, rc::OFF_WHITE.r, rc::OFF_WHITE.g,
-                               rc::OFF_WHITE.b, rc::OFF_WHITE.a);
+        SDL_SetRenderDrawColor(renderer, sdlcolours::OFF_WHITE.r,
+                               sdlcolours::OFF_WHITE.g, sdlcolours::OFF_WHITE.b,
+                               sdlcolours::OFF_WHITE.a);
 
         // Clears the screen
         SDL_RenderClear(renderer);
@@ -203,40 +204,39 @@ void ArenaModelView::mainLoop() {
         // DRAW LOGIC
 
         // Draw grid cells
-        drawC(SDL_SetRenderDrawColor, SDL_RenderFillRectsF,
-              renderObjects->obstacles, rc::OBSTACLE);
-        drawC(SDL_SetRenderDrawColor, SDL_RenderFillRectsF, renderObjects->reds,
-              rc::RED);
-        drawC(SDL_SetRenderDrawColor, SDL_RenderFillRectsF,
-              renderObjects->greens, rc::GREEN);
-        drawC(SDL_SetRenderDrawColor, SDL_RenderFillRectsF,
-              renderObjects->blues, rc::BLUE);
+        renderColourDraw(SDL_RenderFillRectsF, renderObjects->obstacles,
+                         sdlcolours::OBSTACLE);
+        renderColourDraw(SDL_RenderFillRectsF, renderObjects->reds,
+                         sdlcolours::RED);
+        renderColourDraw(SDL_RenderFillRectsF, renderObjects->greens,
+                         sdlcolours::GREEN);
+        renderColourDraw(SDL_RenderFillRectsF, renderObjects->blues,
+                         sdlcolours::BLUE);
 
         // Draw Lines
-        drawC(SDL_SetRenderDrawColor, SDL_RenderDrawRectsF,
-              renderObjects->points, rc::LINE_BLUE);
+        renderColourDraw(SDL_RenderDrawRectsF, renderObjects->points,
+                         sdlcolours::LINE_BLUE);
 
         // Draw Robots
         filledCircleRGBA(renderer, robotRender->body.x, robotRender->body.y,
-                         robotRender->body.r, rc::OFF_BLACK.r, rc::OFF_BLACK.g,
-                         rc::OFF_BLACK.b, rc::OFF_BLACK.a);
-        SDL_SetRenderDrawColor(renderer, rc::OFF_WHITE.r, rc::OFF_WHITE.g,
-                               rc::OFF_WHITE.b, rc::OFF_WHITE.a);
+                         robotRender->body.r, sdlcolours::OFF_BLACK.r,
+                         sdlcolours::OFF_BLACK.g, sdlcolours::OFF_BLACK.b,
+                         sdlcolours::OFF_BLACK.a);
+        SDL_SetRenderDrawColor(renderer, sdlcolours::OFF_WHITE.r,
+                               sdlcolours::OFF_WHITE.g, sdlcolours::OFF_WHITE.b,
+                               sdlcolours::OFF_WHITE.a);
         SDL_RenderDrawLineF(renderer, robotRender->body.x, robotRender->body.y,
                             robotRender->radius.x, robotRender->radius.y);
+
         filledCircleRGBA(renderer, robotRender->sensor.x, robotRender->sensor.y,
-                         robotRender->sensor.r, rc::OFF_WHITE.r,
-                         rc::OFF_WHITE.g, rc::OFF_WHITE.b, rc::OFF_WHITE.a);
+                         robotRender->sensor.r, sdlcolours::OFF_WHITE.r,
+                         sdlcolours::OFF_WHITE.g, sdlcolours::OFF_WHITE.b,
+                         sdlcolours::OFF_WHITE.a);
 
-        // DRAW LOGIC
-
-        // Triggers the double buffers for multiple rendering
+        // Draw to screen
         SDL_RenderPresent(renderer);
 
         // Frame delay
         SDL_Delay(FRAME_DELAY);
     }
-
-    // Set this flag so that if the robotmonitor task is sleeping it will break
-    // robot->shouldStop = false;
 }

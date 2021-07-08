@@ -23,8 +23,11 @@ class RobotMonitor {
   private:
     // stored as void, purely to hide simulated robot
     std::shared_ptr<void> robot;
+
     int delay;
     bool verbose;
+
+    template <typename fn> void wait(fn);
 
   public:
     RobotMonitor(int, bool);
@@ -117,9 +120,10 @@ class RobotMonitor {
     /**
      * If this method is not overridden then the monitor writes various bits of
      * robot state to the screen, then sleeps.
-     *
      */
     virtual void run(bool *);
+
+    void debug();
 };
 
 } // namespace robosim
