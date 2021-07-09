@@ -28,8 +28,9 @@ include(CPack)
 set(INCLUDE_PATH ${CMAKE_SOURCE_DIR}/include/${PROJECT_NAME})
 set(SOURCE_PATH ${CMAKE_SOURCE_DIR}/src/${PROJECT_NAME})
 
-set(HEADER_FILES ${INCLUDE_PATH}/${PROJECT_NAME}.h
-                 ${INCLUDE_PATH}/EnvController.h ${INCLUDE_PATH}/RobotMonitor.h)
+set(HEADER_FILES
+    ${INCLUDE_PATH}/${PROJECT_NAME}.h ${INCLUDE_PATH}/EnvController.h
+    ${INCLUDE_PATH}/RobotMonitor.h ${INCLUDE_PATH}/Colour.h)
 set(INCLUDE_INSTALL_PATH include/${PROJECT_NAME})
 set(LIB_INSTALL_PATH lib)
 

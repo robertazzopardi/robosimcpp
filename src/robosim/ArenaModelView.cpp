@@ -10,14 +10,13 @@
  */
 #include "ArenaModelView.h"
 #include "ArenaModel.h"
-#include "Common.h"
+#include "Colour.h"
 #include "MyGridCell.h"
 #include "SimulatedRobot.h"
 #include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
 #include <SDL_error.h>
 #include <SDL_events.h>
-#include <SDL_pixels.h>
 #include <SDL_rect.h>
 #include <SDL_render.h>
 #include <SDL_stdinc.h>
@@ -25,8 +24,8 @@
 #include <SDL_video.h>
 #include <iostream>
 #include <math.h>
+#include <stddef.h>
 
-#define SIZE 800
 #define WINDOW_TITLE "RoboSim"
 static constexpr auto FRAME_DELAY = 1000 / 60;
 
@@ -61,8 +60,6 @@ ArenaModelView::ArenaModelView(ArenaModel *model, SimulatedRobot *robot) {
     this->model = model;
     this->robot = robot;
 
-    pointCount = (model->getArenaWidthInCells() * 4) + 4;
-
     if (SDL_Init(SDL_INIT_EVERYTHING)) {
         std::cout << "error initializing SDL: %s\n"
                   << SDL_GetError() << std::endl;
@@ -71,8 +68,10 @@ ArenaModelView::ArenaModelView(ArenaModel *model, SimulatedRobot *robot) {
     robotRender = std::make_unique<RobotRender>();
     renderObjects = std::make_unique<RenderObjects>();
 
-    window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED, SIZE, SIZE, 0);
+    window = SDL_CreateWindow(
+        WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        model->getArenaWidthInCells() * model->getCellWidth(),
+        model->getArenaHeightInCells() * model->getCellWidth(), 0);
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
@@ -97,29 +96,41 @@ void ArenaModelView::buildGui() {
 
     auto cellWidth = model->getCellWidth();
 
-    // Set up grid lines
-    for (auto i = 0; i < pointCount / 4; i++) {
-        auto dxy = i * cellWidth;
-        renderObjects->points.push_back({dxy, 0, SIZE, SIZE});
-        renderObjects->points.push_back({0, dxy, SIZE, SIZE});
+    auto grid = model->getGrid();
+
+    auto h = model->getArenaHeightInCells() * cellWidth;
+    auto w = model->getArenaWidthInCells() * cellWidth;
+
+    for (int row = 0; row < model->getArenaWidthInCells(); row += 2) {
+        // vertical
+        renderObjects->points.push_back({row * cellWidth, 0, cellWidth, h});
     }
 
-    auto xy = cellWidth;
-    for (auto y = 0; y < model->getArenaHeightInCells(); y++) {
-        for (auto x = 0; x < model->getArenaWidthInCells(); x++) {
-            switch (model->getOccupancy(x, y)) {
+    for (int row = 0; row < model->getArenaHeightInCells(); row += 2) {
+        // horizontal
+        renderObjects->points.push_back({0, row * cellWidth, w, cellWidth});
+    }
+
+    // renderObjects->points.push_back({0, 0, w, h});
+
+    // Set up obstacles on the grid
+    for (size_t row = 0; row < grid.size(); row++) {
+        for (size_t col = 0; col < grid.at(row).size(); col++) {
+            SDL_FRect fRect = {col * cellWidth, row * cellWidth, cellWidth,
+                               cellWidth};
+
+            switch (grid.at(row).at(col).getCellType()) {
             case OccupancyType::OBSTACLE:
-                renderObjects->obstacles.push_back(
-                    {(x * xy), (y * xy), xy, xy});
+                renderObjects->obstacles.push_back(fRect);
                 break;
             case OccupancyType::RED:
-                renderObjects->reds.push_back({(x * xy), (y * xy), xy, xy});
+                renderObjects->reds.push_back(fRect);
                 break;
             case OccupancyType::GREEN:
-                renderObjects->greens.push_back({(x * xy), (y * xy), xy, xy});
+                renderObjects->greens.push_back(fRect);
                 break;
             case OccupancyType::BLUE:
-                renderObjects->blues.push_back({(x * xy), (y * xy), xy, xy});
+                renderObjects->blues.push_back(fRect);
                 break;
             case OccupancyType::ROBOT:
             case OccupancyType::EMPTY:
@@ -145,7 +156,6 @@ void ArenaModelView::update() {
     auto y = robot->getY();
 
     auto angle = robot->getHeadingInRadians();
-    // std::cout << angle << std::endl;
 
     auto scale = robotRender->body.r * .9;
 
@@ -170,11 +180,11 @@ void ArenaModelView::update() {
     robotRender->sensor.y = sy;
 }
 
-template <typename FF, typename V>
-void ArenaModelView::renderColourDraw(FF fnfn, std::vector<V> prims,
-                                      SDL_Color c) {
+template <typename Function, typename V>
+void ArenaModelView::renderColourDraw(Function renderFunction, colour::Colour c,
+                                      std::vector<V> prims) {
     SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
-    fnfn(renderer, prims.data(), prims.size());
+    renderFunction(renderer, prims.data(), prims.size());
 }
 
 void ArenaModelView::mainLoop() {
@@ -194,9 +204,9 @@ void ArenaModelView::mainLoop() {
         }
 
         // Draw background
-        SDL_SetRenderDrawColor(renderer, sdlcolours::OFF_WHITE.r,
-                               sdlcolours::OFF_WHITE.g, sdlcolours::OFF_WHITE.b,
-                               sdlcolours::OFF_WHITE.a);
+        SDL_SetRenderDrawColor(renderer, colour::OFF_WHITE.r,
+                               colour::OFF_WHITE.g, colour::OFF_WHITE.b,
+                               colour::OFF_WHITE.a);
 
         // Clears the screen
         SDL_RenderClear(renderer);
@@ -204,34 +214,34 @@ void ArenaModelView::mainLoop() {
         // DRAW LOGIC
 
         // Draw grid cells
-        renderColourDraw(SDL_RenderFillRectsF, renderObjects->obstacles,
-                         sdlcolours::OBSTACLE);
-        renderColourDraw(SDL_RenderFillRectsF, renderObjects->reds,
-                         sdlcolours::RED);
-        renderColourDraw(SDL_RenderFillRectsF, renderObjects->greens,
-                         sdlcolours::GREEN);
-        renderColourDraw(SDL_RenderFillRectsF, renderObjects->blues,
-                         sdlcolours::BLUE);
+        renderColourDraw(SDL_RenderFillRectsF, colour::OBSTACLE,
+                         renderObjects->obstacles);
+        renderColourDraw(SDL_RenderFillRectsF, colour::RED,
+                         renderObjects->reds);
+        renderColourDraw(SDL_RenderFillRectsF, colour::GREEN,
+                         renderObjects->greens);
+        renderColourDraw(SDL_RenderFillRectsF, colour::BLUE,
+                         renderObjects->blues);
 
         // Draw Lines
-        renderColourDraw(SDL_RenderDrawRectsF, renderObjects->points,
-                         sdlcolours::LINE_BLUE);
+        renderColourDraw(SDL_RenderDrawRectsF, colour::LINE_BLUE,
+                         renderObjects->points);
 
         // Draw Robots
         filledCircleRGBA(renderer, robotRender->body.x, robotRender->body.y,
-                         robotRender->body.r, sdlcolours::OFF_BLACK.r,
-                         sdlcolours::OFF_BLACK.g, sdlcolours::OFF_BLACK.b,
-                         sdlcolours::OFF_BLACK.a);
-        SDL_SetRenderDrawColor(renderer, sdlcolours::OFF_WHITE.r,
-                               sdlcolours::OFF_WHITE.g, sdlcolours::OFF_WHITE.b,
-                               sdlcolours::OFF_WHITE.a);
+                         robotRender->body.r, colour::OFF_BLACK.r,
+                         colour::OFF_BLACK.g, colour::OFF_BLACK.b,
+                         colour::OFF_BLACK.a);
+        SDL_SetRenderDrawColor(renderer, colour::OFF_WHITE.r,
+                               colour::OFF_WHITE.g, colour::OFF_WHITE.b,
+                               colour::OFF_WHITE.a);
         SDL_RenderDrawLineF(renderer, robotRender->body.x, robotRender->body.y,
                             robotRender->radius.x, robotRender->radius.y);
 
         filledCircleRGBA(renderer, robotRender->sensor.x, robotRender->sensor.y,
-                         robotRender->sensor.r, sdlcolours::OFF_WHITE.r,
-                         sdlcolours::OFF_WHITE.g, sdlcolours::OFF_WHITE.b,
-                         sdlcolours::OFF_WHITE.a);
+                         robotRender->sensor.r, colour::OFF_WHITE.r,
+                         colour::OFF_WHITE.g, colour::OFF_WHITE.b,
+                         colour::OFF_WHITE.a);
 
         // Draw to screen
         SDL_RenderPresent(renderer);

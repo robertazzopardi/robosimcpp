@@ -26,9 +26,9 @@ ArenaModel::ArenaModel(const char *configFileName, int arenaWidth,
                        int arenaHeight)
     : grid(arenaHeight, std::vector<Cell>(arenaWidth, Cell::getEmptyCell())) {
 
+    this->configFileName = configFileName;
     arenaWidthInCells = arenaWidth;
     arenaHeightInCells = arenaHeight;
-    this->configFileName = configFileName;
 
     cellWidth = SIZE / arenaHeightInCells;
 
@@ -73,11 +73,13 @@ OccupancyType ArenaModel::getOccupancy(int colPos, int rowPos) {
     return OccupancyType::UNKNOWN;
 }
 
-bool ArenaModel::parseConfigLine(std::string line) {
+bool ArenaModel::parseConfigLine(std::string line, int *r, int *c) {
     auto tokens = tokenize(line);
 
-    int colPos = std::stoi(tokens.at(0));
-    int rowPos = std::stoi(tokens.at(1));
+    auto colPos = std::stoi(tokens.at(0));
+    auto rowPos = std::stoi(tokens.at(1));
+    *c = colPos > *c ? colPos : *c;
+    *r = rowPos > *r ? rowPos : *r;
 
     auto occTypeStr = tokens.at(2);
     auto occ = OccupancyType::EMPTY;
@@ -120,13 +122,25 @@ bool ArenaModel::readConfig() {
 
     // Use a while loop together with the getline() function to read the file
     // line by line
+    int r = 0;
+    int c = 0;
     while (getline(file, line)) {
         // Output the text from the file
         if (line != "")
-            result = parseConfigLine(line);
+            result = parseConfigLine(line, &r, &c);
     }
 
     file.close();
+
+    grid.resize(r + 1);
+    for (auto &row : grid) {
+        row.resize(c + 1, Cell::getEmptyCell());
+    }
+
+    arenaHeightInCells = r + 1;
+    arenaWidthInCells = c + 1;
+
+    cellWidth = (float)SIZE / arenaWidthInCells;
 
     return result;
 }
@@ -143,3 +157,5 @@ std::string ArenaModel::toString() {
     }
     return result;
 }
+
+arenamodel::Grid ArenaModel::getGrid() { return grid; }

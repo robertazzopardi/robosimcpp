@@ -21,20 +21,25 @@
 
 class Robot : public robosim::RobotMonitor {
   public:
-    Robot(int delay, bool verbose) : robosim::RobotMonitor(delay, verbose) {}
-    void run(bool *running __unused) {
-        std::cout << "Hello Robot " << std::endl;
-        debug();
-        rotate(90);
-        setDirection(90);
-        travel();
+    // Inherit constructor (essentially super the RobotMonitor constructor)
+    Robot(bool verbose) : robosim::RobotMonitor(verbose) {}
+
+    // Override the run method
+    // The code here will be executed by the robot
+    void run(bool *running) {
+        while (*running) {
+            std::cout << "Hello Robot " << std::endl;
+            travel();
+            rotate(90);
+            // debug();
+        }
     }
 };
 
 int main(void) {
-    Robot robot(100, false);
+    Robot robot(false);
 
-    robosim::EnvController env(CONFIG_NAME, 7, 7, &robot);
+    robosim::EnvController env(CONFIG_NAME, 10, 10, &robot);
 
     robot.setTravelSpeed(50);
 

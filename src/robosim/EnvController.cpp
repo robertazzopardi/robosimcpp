@@ -11,7 +11,7 @@
 #include "EnvController.h"
 #include "ArenaModel.h"
 #include "ArenaModelView.h"
-#include "Common.h"
+#include "Casting.h"
 #include "RobotMonitor.h"
 #include "SimulatedRobot.h"
 #include <future>
@@ -30,7 +30,7 @@ constexpr auto View =
     typecasting::make_ptr<ArenaModelView, ArenaModel *, SimulatedRobot *>;
 constexpr auto ModelView = typecasting::cast_ptr<ArenaModelView>;
 constexpr auto SimRobot = typecasting::cast<SimulatedRobot *>;
-constexpr auto AModel = typecasting::cast<ArenaModel *>;
+constexpr auto Model = typecasting::cast<ArenaModel *>;
 
 EnvController::EnvController(const char *confFileName, int cols, int rows,
                              RobotMonitor *monitor) {
@@ -39,9 +39,9 @@ EnvController::EnvController(const char *confFileName, int cols, int rows,
     myMonitor = monitor;
     myMonitor->setArenaModel(model);
 
-    view = View(AModel(model.get()), SimRobot(myMonitor->getRobot()));
+    view = View(Model(model.get()), SimRobot(myMonitor->getRobot()));
 
-    std::cout << AModel(model.get())->toString() << std::endl;
+    std::cout << Model(model.get())->toString() << std::endl;
 }
 
 EnvController::~EnvController() {}

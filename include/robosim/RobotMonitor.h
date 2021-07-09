@@ -15,7 +15,9 @@
 
 #include <memory>
 
-struct SDL_Color;
+namespace colour {
+struct Colour;
+} // namespace colour
 
 namespace robosim {
 
@@ -24,13 +26,15 @@ class RobotMonitor {
     // stored as void, purely to hide simulated robot
     std::shared_ptr<void> robot;
 
-    int delay;
+    // int delay;
     bool verbose;
 
     template <typename fn> void wait(fn);
 
+    int getTravelSpeed();
+
   public:
-    RobotMonitor(int, bool);
+    RobotMonitor(bool);
     ~RobotMonitor();
 
     void setArenaModel(std::shared_ptr<void>);
@@ -87,7 +91,7 @@ class RobotMonitor {
      * Check the  of the cell beneath the center of the robot.
      * @return a Color object
      */
-    SDL_Color getCSenseColor();
+    colour::Colour getCSenseColor();
 
     /**
      * Get the range of the nearest object in the direction of the sensor.

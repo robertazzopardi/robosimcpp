@@ -36,7 +36,7 @@ class ArenaModel {
     Grid grid;
 
     bool setOccupancy(int, int, mygridcell::OccupancyType);
-    bool parseConfigLine(std::string);
+    bool parseConfigLine(std::string, int *, int *);
     bool readConfig();
     std::vector<std::string> tokenize(std::string);
 
@@ -49,6 +49,8 @@ class ArenaModel {
     int getArenaWidthInCells();
     int getArenaHeightInCells();
     float getCellWidth();
+
+    Grid getGrid();
 };
 
 } // namespace arenamodel

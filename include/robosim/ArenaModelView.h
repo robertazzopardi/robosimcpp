@@ -17,9 +17,12 @@
 
 struct SDL_Window;
 struct SDL_Renderer;
-struct SDL_Color;
 
 struct RobotRender;
+
+namespace colour {
+struct Colour;
+}
 
 namespace simulatedrobot {
 class SimulatedRobot;
@@ -43,12 +46,10 @@ class ArenaModelView {
     SDL_Window *window;
     SDL_Renderer *renderer;
 
-    int pointCount;
-
     void buildGui();
 
-    template <typename FF, typename V>
-    void renderColourDraw(FF, std::vector<V>, SDL_Color);
+    template <typename Function, typename V>
+    void renderColourDraw(Function, colour::Colour, std::vector<V>);
 
   public:
     static bool running;

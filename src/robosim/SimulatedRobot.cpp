@@ -11,16 +11,15 @@
 #include "SimulatedRobot.h"
 #include "ArenaModel.h"
 #include "ArenaModelView.h"
-#include "Common.h"
+#include "Colour.h"
 #include "MyGridCell.h"
-#include <SDL_pixels.h>
 #include <SDL_timer.h>
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
 #include <string>
 
-// Java method of converting degrees to radians. Multiply degrees by this
+// Java to radians method. Multiply degrees by this
 constexpr auto DEGREES_TO_RADIANS = 0.017453292519943295;
 
 // Physical Characteristics of the Robot
@@ -50,11 +49,11 @@ using arenamodelview::ArenaModelView;
 using mygridcell::OccupancyType;
 using simulatedrobot::SimulatedRobot;
 
-SimulatedRobot::SimulatedRobot(ArenaModel *model, int delay) : attributes{} {
+SimulatedRobot::SimulatedRobot(ArenaModel *model) : attributes{} {
     this->model = model;
-    this->delay = delay;
 
     auto center = static_cast<int>((3 * model->getCellWidth()) / 2);
+    // std::cout << center << std::endl;
     // Position the robot in the center of the (1,1) cell
     attributes.xLocation = center;     // center of (1, 1)
     attributes.yLocation = center;     // center of (1, 1)
@@ -150,18 +149,19 @@ bool SimulatedRobot::isAtRotation() {
 
 bool SimulatedRobot::isBumperPressed() { return attributes.bumperPressed; }
 
-SDL_Color SimulatedRobot::getCSenseColor() {
+colour::Colour SimulatedRobot::getCSenseColor() {
     auto cellWidth = model->getCellWidth();
-    auto colPos = getX() / cellWidth;
-    auto rowPos = getY() / cellWidth;
+    auto colPos = floor(getX() / cellWidth);
+    auto rowPos = floor(getY() / cellWidth);
 
-    switch (model->getOccupancy(colPos, rowPos)) {
+    auto occupancy = model->getOccupancy(colPos, rowPos);
+    switch (occupancy) {
     case OccupancyType::RED:
-        return sdlcolours::RED;
+        return colour::RED;
     case OccupancyType::GREEN:
-        return sdlcolours::GREEN;
+        return colour::GREEN;
     case OccupancyType::BLUE:
-        return sdlcolours::BLUE;
+        return colour::BLUE;
     case OccupancyType::EMPTY:
     case OccupancyType::OBSTACLE:
     case OccupancyType::ROBOT:
@@ -170,7 +170,7 @@ SDL_Color SimulatedRobot::getCSenseColor() {
         break; // do nothing
     }
 
-    return sdlcolours::WHITE;
+    return colour::WHITE;
 }
 
 // =====================================================================
@@ -259,10 +259,10 @@ void SimulatedRobot::run(arenamodelview::ArenaModelView *view) {
     while (ArenaModelView::running) {
         auto deltaDist = 0;     // Represents the distance to travel
         auto deltaRotation = 0; // Represents the rotation distance to rotate
-        auto travelSegment = round(
-            attributes.travelSpeedPerUpdate); // We track movement in ints!
-        auto rotationSegment = round(
-            attributes.rotationSpeedPerUpdate); // We track movement in ints!
+        auto travelSegment =
+            attributes.travelSpeedPerUpdate; // We track movement in ints!
+        auto rotationSegment =
+            attributes.rotationSpeedPerUpdate; // We track movement in ints!
 
         // Are we moving?
 
@@ -285,8 +285,8 @@ void SimulatedRobot::run(arenamodelview::ArenaModelView *view) {
             }
 
             // Need to check if we are about to run into an obstacle
-            auto xDelta = round(sin(attributes.headingInRadians) * deltaDist);
-            auto yDelta = round(cos(attributes.headingInRadians) * deltaDist);
+            auto xDelta = sin(attributes.headingInRadians) * deltaDist;
+            auto yDelta = cos(attributes.headingInRadians) * deltaDist;
 
             // Check for collisions
             attributes.bumperPressed = isColliding(
@@ -341,6 +341,6 @@ void SimulatedRobot::run(arenamodelview::ArenaModelView *view) {
 
         view->update();
 
-        SDL_Delay(delay);
+        SDL_Delay(UPDATE_DELAY);
     }
 }

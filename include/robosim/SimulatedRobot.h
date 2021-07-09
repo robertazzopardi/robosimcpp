@@ -12,7 +12,9 @@
 #ifndef __SIMULATED_ROBOT_H__
 #define __SIMULATED_ROBOT_H__
 
-struct SDL_Color;
+namespace colour {
+struct Colour;
+} // namespace colour
 
 namespace arenamodel {
 class ArenaModel;
@@ -62,12 +64,10 @@ class SimulatedRobot {
      */
     void setHeading(int);
 
-    int delay;
-
   public:
     // bool shouldStop = false;
 
-    SimulatedRobot(arenamodel::ArenaModel *, int);
+    SimulatedRobot(arenamodel::ArenaModel *);
     ~SimulatedRobot();
 
     auto getRobotBodySize();
@@ -171,7 +171,7 @@ class SimulatedRobot {
      * the sensor will detect Color.RED, Color.GREEN and Color.BLUE
      * @return Color
      */
-    SDL_Color getCSenseColor();
+    colour::Colour getCSenseColor();
 
     /**
      * float getUSenseRange();

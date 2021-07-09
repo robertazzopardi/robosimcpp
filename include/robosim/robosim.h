@@ -12,6 +12,7 @@
 #ifndef __ROBOSIM_H__
 #define __ROBOSIM_H__
 
+#include "Colour.h"
 #include "EnvController.h"
 #include "RobotMonitor.h"
 
