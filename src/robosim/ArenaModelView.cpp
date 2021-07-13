@@ -23,17 +23,21 @@
 #include <SDL_timer.h>
 #include <SDL_video.h>
 #include <iostream>
+#include <memory>
 #include <stdlib.h>
 #include <type_traits>
+#include <vector>
 
 static constexpr auto WINDOW_TITLE = "RoboSim";
 static constexpr auto FRAME_DELAY = 1000 / 60;
 
-using arenamodel::ArenaModel;
-using arenamodelview::ArenaModelView;
 using mygridcell::OccupancyType;
 using robosim::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
+
+namespace arenamodelview {
+
+namespace {
 
 struct RenderObjects {
     std::vector<SDL_FRect> points;
@@ -43,65 +47,36 @@ struct RenderObjects {
     std::vector<SDL_FRect> blues;
 };
 
-bool ArenaModelView::running = true;
+std::unique_ptr<RenderObjects> renderObjects;
 
-ArenaModelView::ArenaModelView() {
-    if (SDL_Init(SDL_INIT_EVERYTHING)) {
-        std::cout << "error initializing SDL: %s\n"
-                  << SDL_GetError() << std::endl;
-        std::exit(-1);
-    }
+SDL_Window *window;
+SDL_Renderer *renderer;
 
-    window = SDL_CreateWindow(
-        WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        ArenaModel::arenaWidthInCells * ArenaModel::cellWidth,
-        ArenaModel::arenaHeightInCells * ArenaModel::cellWidth, 0);
+void buildGui() {
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-    renderObjects = std::make_unique<RenderObjects>();
-
-    buildGui();
-}
-
-ArenaModelView::~ArenaModelView() {
-    // Destroy renderer
-    SDL_DestroyRenderer(renderer);
-    renderer = nullptr;
-
-    // Destroy window
-    SDL_DestroyWindow(window);
-    window = nullptr;
-
-    // Quit SDL
-    SDL_Quit();
-}
-
-void ArenaModelView::buildGui() {
-
-    auto h = ArenaModel::arenaHeightInCells * ArenaModel::cellWidth;
-    auto w = ArenaModel::arenaWidthInCells * ArenaModel::cellWidth;
+    auto w = arenamodel::grid[0].size() * arenamodel::cellWidth;
+    auto h = arenamodel::grid.size() * arenamodel::cellWidth;
 
     // vertical lines
-    for (int row = 0; row < ArenaModel::arenaWidthInCells; row += 2) {
+    for (size_t row = 0; row < arenamodel::grid[0].size(); row += 2) {
         renderObjects->points.push_back(
-            {row * ArenaModel::cellWidth, 0, ArenaModel::cellWidth, h});
+            {row * arenamodel::cellWidth, 0, arenamodel::cellWidth, h});
     }
 
     // horizontal lines
-    for (int row = 0; row < ArenaModel::arenaHeightInCells; row += 2) {
+    for (size_t row = 0; row < arenamodel::grid.size(); row += 2) {
         renderObjects->points.push_back(
-            {0, row * ArenaModel::cellWidth, w, ArenaModel::cellWidth});
+            {0, row * arenamodel::cellWidth, w, arenamodel::cellWidth});
     }
 
     // Set up obstacles on the grid
-    for (size_t row = 0; row < ArenaModel::grid.size(); row++) {
-        for (size_t col = 0; col < ArenaModel::grid[row].size(); col++) {
-            SDL_FRect fRect = {col * ArenaModel::cellWidth,
-                               row * ArenaModel::cellWidth,
-                               ArenaModel::cellWidth, ArenaModel::cellWidth};
+    for (size_t row = 0; row < arenamodel::grid.size(); row++) {
+        for (size_t col = 0; col < arenamodel::grid[row].size(); col++) {
+            SDL_FRect fRect = {col * arenamodel::cellWidth,
+                               row * arenamodel::cellWidth,
+                               arenamodel::cellWidth, arenamodel::cellWidth};
 
-            switch (ArenaModel::grid[row][col].getCellType()) {
+            switch (arenamodel::grid[row][col].getCellType()) {
             case OccupancyType::OBSTACLE:
                 renderObjects->obstacles.push_back(fRect);
                 break;
@@ -125,13 +100,28 @@ void ArenaModelView::buildGui() {
 }
 
 template <typename Function, typename V>
-void ArenaModelView::renderColourDraw(Function renderFunction, colour::Colour c,
-                                      std::vector<V> prims) {
+static constexpr void renderColourDraw(Function renderFunction,
+                                       colour::Colour c, std::vector<V> prims) {
     SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
     renderFunction(renderer, prims.data(), prims.size());
 }
 
-void ArenaModelView::mainLoop(const std::vector<robosim::RobotPtr> &monitors) {
+static void cleanUp() {
+    // Destroy renderer
+    SDL_DestroyRenderer(renderer);
+    renderer = nullptr;
+
+    // Destroy window
+    SDL_DestroyWindow(window);
+    window = nullptr;
+
+    // Quit SDL
+    SDL_Quit();
+}
+
+} // namespace
+
+void mainLoop(const std::vector<robosim::RobotPtr> &monitors) {
     using namespace colour;
 
     SDL_Event event;
@@ -197,4 +187,27 @@ void ArenaModelView::mainLoop(const std::vector<robosim::RobotPtr> &monitors) {
         // Frame delay
         SDL_Delay(FRAME_DELAY);
     }
+
+    cleanUp();
 }
+
+void initModelView() {
+    if (SDL_Init(SDL_INIT_EVERYTHING)) {
+        std::cout << "error initializing SDL: %s\n"
+                  << SDL_GetError() << std::endl;
+        std::exit(-1);
+    }
+
+    window = SDL_CreateWindow(
+        WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        arenamodel::grid[0].size() * arenamodel::cellWidth,
+        arenamodel::grid.size() * arenamodel::cellWidth, 0);
+
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    renderObjects = std::make_unique<RenderObjects>();
+
+    buildGui();
+}
+
+} // namespace arenamodelview

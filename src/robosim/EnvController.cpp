@@ -14,57 +14,60 @@
 #include "Casting.h"
 #include "RobotMonitor.h"
 #include "SimulatedRobot.h"
+#include <memory>
 #include <thread>
 #include <type_traits>
 #include <vector>
 
-using arenamodel::ArenaModel;
-using arenamodelview::ArenaModelView;
 using robosim::EnvController;
 using robosim::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
 
-constexpr auto View = typecasting::make_ptr<ArenaModelView>;
-constexpr auto ModelView = typecasting::cast_ptr<ArenaModelView>;
 constexpr auto SimRobot = typecasting::cast<SimulatedRobot *>;
 
-EnvController::EnvController(const char *confFileName,
-                             const MonitorVec &monitors) {
+namespace robosim {
 
-    ArenaModel::makeModel(confFileName);
+namespace {
 
-    init(monitors);
-}
+MonitorVec myMonitors;
 
-EnvController::EnvController(int rows, int cols, const MonitorVec &monitors) {
+// Store as void smart pointer type, purely to hide the declarations
+std::shared_ptr<void> view;
 
-    ArenaModel::makeModel(rows, cols);
+template <typename... Args>
+void init(const MonitorVec &monitors, Args... args) {
+    arenamodel::makeModel(args...);
 
-    init(monitors);
-}
-
-EnvController::~EnvController() {}
-
-void EnvController::init(const MonitorVec &monitors) {
     myMonitors = monitors;
 
     for (const auto &monitor : myMonitors) {
         monitor->setRobot();
     }
 
-    view = View();
-
-    ArenaModel::toString();
+    arenamodel::toString();
 }
 
-void EnvController::startSimulation() {
+} // namespace
+
+void EnvController(const MonitorVec &monitors, const char *confFileName) {
+    init(monitors, confFileName);
+}
+
+void EnvController(const MonitorVec &monitors, int rows, int cols) {
+    init(monitors, rows, cols);
+}
+
+void startSimulation() {
+    arenamodelview::initModelView();
 
     for (auto monitor : myMonitors) {
-        std::thread(&RobotMonitor::run, monitor, &ArenaModelView::running)
+        std::thread(&RobotMonitor::run, monitor, &arenamodelview::running)
             .detach();
         std::thread(&SimulatedRobot::run, SimRobot(monitor->getRobot()))
             .detach();
     }
 
-    ModelView(view)->mainLoop(myMonitors);
+    arenamodelview::mainLoop(myMonitors);
 }
+
+} // namespace robosim

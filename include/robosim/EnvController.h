@@ -13,27 +13,33 @@
 #define __ENV_CONTROLLER_H__
 
 #include "RobotMonitor.h"
-#include <memory>
 
 namespace robosim {
 
-class EnvController {
-  private:
-    MonitorVec myMonitors;
+/**
+ * Initialise the Environment Controller from a specified config file
+ *
+ * @param robots vector of robots
+ * @param configFileName file path of the environment configuration file
+ *
+ */
+void EnvController(const MonitorVec &, const char *);
 
-    // Store as void smart pointer type, purely to hide the declarations
-    std::shared_ptr<void> view;
+/**
+ * Create an Environment with given cell width and height, with a border of
+ * obstacles
+ *
+ * @param robots vector of robots
+ * @param rows number of rows
+ * @param cols number of columns
+ *
+ */
+void EnvController(const MonitorVec &, int, int);
 
-    void init(const MonitorVec &);
-
-  public:
-    EnvController(const char *, const MonitorVec &);
-    EnvController(int, int, const MonitorVec &);
-
-    ~EnvController();
-
-    void startSimulation();
-};
+/**
+ * Begin the simulation
+ */
+void startSimulation();
 
 } // namespace robosim
 

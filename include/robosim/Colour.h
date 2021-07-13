@@ -7,6 +7,9 @@
  *
  * @copyright Copyright (c) 2021
  *
+ * SDL_Color/Colour .h is also viable, this is basically a clone so that == can
+ * be overriden
+ *
  */
 
 #ifndef __COMMON_H__

@@ -112,6 +112,9 @@ class SimulatedRobot {
      */
     double getDirectionInRadians();
 
+    /**
+     * Turn Robot by the specified degrees
+     */
     bool setDirection(int);
 
     /**

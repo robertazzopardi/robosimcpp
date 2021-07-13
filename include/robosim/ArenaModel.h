@@ -14,43 +14,22 @@
 #define __ARENA_MODEL_H__
 
 #include "MyGridCell.h"
-#include <iosfwd>
 #include <vector>
 
 namespace arenamodel {
 
-using Cell = mygridcell::MyGridCell<mygridcell::OccupancyType>;
-using Row = std::vector<Cell>;
+using Row = std::vector<mygridcell::Cell>;
 using Grid = std::vector<Row>;
 
-struct ConfigLine {
-    int row;
-    int col;
-    mygridcell::OccupancyType occ;
-};
+extern Grid grid;
+extern float cellWidth;
 
-class ArenaModel {
-  private:
-    static arenamodel::ConfigLine tokenize(std::string);
-    static void parseConfigFile(const char *);
+void makeModel(const char *);
+void makeModel(int, int);
 
-    ArenaModel(const char *, int, int);
-    ~ArenaModel();
-
-  public:
-    static void makeModel(const char *);
-    static void makeModel(int, int);
-
-    static int arenaWidthInCells;
-    static int arenaHeightInCells;
-    static float cellWidth;
-
-    static bool setOccupancy(int, int, mygridcell::OccupancyType);
-    static mygridcell::OccupancyType getOccupancy(int, int);
-    static void toString();
-
-    static Grid grid;
-};
+bool setOccupancy(int, int, mygridcell::OccupancyType);
+mygridcell::OccupancyType getOccupancy(int, int);
+void toString();
 
 } // namespace arenamodel
 

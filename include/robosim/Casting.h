@@ -16,13 +16,15 @@
 
 namespace typecasting {
 
-template <typename T> auto cast(void *ptr) { return static_cast<T>(ptr); }
+template <typename T> inline auto cast(void *ptr) {
+    return static_cast<T>(ptr);
+}
 
-template <typename T> auto cast_ptr(std::shared_ptr<void> ptr) {
+template <typename T> inline auto cast_ptr(std::shared_ptr<void> ptr) {
     return std::static_pointer_cast<T>(ptr);
 }
 
-template <typename T, typename... Args> auto make_ptr(Args... args) {
+template <typename T, typename... Args> inline auto make_ptr(Args... args) {
     return std::make_shared<T>(args...);
 }
 

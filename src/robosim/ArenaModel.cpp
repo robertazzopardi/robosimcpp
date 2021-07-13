@@ -18,72 +18,25 @@
 #include <string>
 #include <vector>
 
-using arenamodel::ArenaModel;
 using mygridcell::OccupancyType;
+
+namespace arenamodel {
+
+float cellWidth = 0;
+Grid grid;
+
+namespace {
 
 constexpr auto SIZE = 800;
 const std::regex reg("\\s*,\\s*");
 
-int ArenaModel::arenaWidthInCells = 0;
-int ArenaModel::arenaHeightInCells = 0;
-float ArenaModel::cellWidth = 0;
-arenamodel::Grid ArenaModel::grid;
+struct ConfigLine {
+    int row;
+    int col;
+    mygridcell::OccupancyType occ;
+};
 
-void ArenaModel::makeModel(const char *configFileName) {
-    parseConfigFile(configFileName);
-}
-
-void ArenaModel::makeModel(int width, int height) {
-    Grid m(width, Row(height));
-    grid = m;
-
-    arenaWidthInCells = width;
-    arenaHeightInCells = height;
-
-    cellWidth = SIZE / arenaHeightInCells;
-
-    // Add boundaries to empty grid
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
-                grid[x][y].setCellType(OccupancyType::OBSTACLE);
-            }
-        }
-    }
-}
-
-ArenaModel::~ArenaModel() {}
-
-bool ArenaModel::setOccupancy(int row, int col, OccupancyType type) {
-    auto size = static_cast<int>(grid.size());
-
-    // Check the bounds of the col and row pos
-    if ((row >= 0 && row <= size) && (col >= 0 && col <= size)) {
-        // Only change the occupancy of a cell if it is empty
-        // Note, separate methods will be used when modelling the robot
-        auto cell = &grid[col][row];
-        // auto cell = &grid[row][col];
-        if (cell->isEmpty()) {
-            cell->setCellType(type);
-            return true;
-        }
-    }
-
-    return false;
-}
-
-OccupancyType ArenaModel::getOccupancy(int row, int col) {
-    static auto size = static_cast<int>(grid.size());
-
-    // Check the bounds of the col and row pos
-    if ((row >= 0 && row <= size) && (col >= 0 && col <= size)) {
-        return grid[col][row].getCellType();
-    }
-
-    return OccupancyType::UNKNOWN;
-}
-
-arenamodel::ConfigLine ArenaModel::tokenize(std::string str) {
+ConfigLine tokenize(std::string str) {
     // Get an iterator after filtering through the regex
     std::sregex_token_iterator iter(str.begin(), str.end(), reg, -1);
 
@@ -107,7 +60,7 @@ arenamodel::ConfigLine ArenaModel::tokenize(std::string str) {
     return {std::stoi(tokens[0]), std::stoi(tokens[1]), occ};
 }
 
-void ArenaModel::parseConfigFile(const char *filePath) {
+void parseConfigFile(const char *filePath) {
     std::fstream file;
     file.open(filePath);
 
@@ -116,7 +69,7 @@ void ArenaModel::parseConfigFile(const char *filePath) {
     std::vector<ConfigLine> lines;
     while (getline(file, line)) {
         // Output the text from the file
-        if (line != "") {
+        if (!line.empty()) {
             lines.push_back(tokenize(line));
         }
     }
@@ -137,19 +90,64 @@ void ArenaModel::parseConfigFile(const char *filePath) {
     Grid m(maxCol, Row(maxRow));
     grid = m;
 
-    arenaWidthInCells = maxRow;
-    arenaHeightInCells = maxCol;
-
-    cellWidth = (float)SIZE / arenaWidthInCells;
+    cellWidth = (float)SIZE / grid[0].size();
 
     for (auto l : lines) {
         setOccupancy(l.row, l.col, l.occ);
     }
 }
 
-void ArenaModel::toString() {
-    auto result = "Arena: " + std::to_string(arenaWidthInCells) + " x " +
-                  std::to_string(arenaHeightInCells) + "\n";
+} // namespace
+
+void makeModel(const char *configFileName) { parseConfigFile(configFileName); }
+
+void makeModel(int width, int height) {
+    Grid m(width, Row(height));
+    grid = m;
+
+    cellWidth = SIZE / grid.size();
+
+    // Add boundaries to empty grid
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
+                grid[x][y].setCellType(OccupancyType::OBSTACLE);
+            }
+        }
+    }
+}
+
+bool setOccupancy(int row, int col, OccupancyType type) {
+    auto size = static_cast<int>(grid.size());
+
+    // Check the bounds of the col and row pos
+    if ((row >= 0 && row <= size) && (col >= 0 && col <= size)) {
+        // Only change the occupancy of a cell if it is empty
+        // Note, separate methods will be used when modelling the robot
+        auto cell = &grid[col][row];
+
+        if (cell->isEmpty()) {
+            cell->setCellType(type);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+OccupancyType getOccupancy(int row, int col) {
+    static auto size = static_cast<int>(grid.size());
+
+    // Check the bounds of the col and row pos
+    if ((row >= 0 && row <= size) && (col >= 0 && col <= size)) {
+        return grid[col][row].getCellType();
+    }
+
+    return OccupancyType::UNKNOWN;
+}
+
+void toString() {
+    std::cout << "Arena: " << grid[0].size() << " x " << grid.size() << "\n";
 
     for (auto var : grid) {
         for (auto c : var) {
@@ -158,3 +156,5 @@ void ArenaModel::toString() {
         std::cout << "\n";
     }
 }
+
+} // namespace arenamodel

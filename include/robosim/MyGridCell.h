@@ -45,6 +45,8 @@ template <typename T> class MyGridCell {
     // }
 };
 
+using Cell = MyGridCell<OccupancyType>;
+
 } // namespace mygridcell
 
 #endif // !__MY_GRID_CELL_H__

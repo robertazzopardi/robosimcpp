@@ -42,17 +42,18 @@ class Robot : public robosim::RobotMonitor {
 };
 
 int main(void) {
+
     robosim::MonitorVec robots = robosim::getRobots<Robot>(1);
     // robosim::MonitorVec robots = robosim::getRobots<Robot>(2);
 
-    robosim::EnvController env(CONFIG_NAME, robots);
-    // robosim::EnvController env(5, 5, robots);
+    robosim::EnvController(robots, CONFIG_NAME);
+    // robosim::EnvController env(robots, 10, 10);
 
     for (auto &robot : robots) {
         robot->setTravelSpeed(50);
     }
 
-    env.startSimulation();
+    robosim::startSimulation();
 
     return 0;
 }

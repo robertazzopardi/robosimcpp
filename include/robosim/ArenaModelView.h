@@ -13,40 +13,16 @@
 #define __ARENA_MODEL_VIEW_H__
 
 #include "RobotMonitor.h"
-#include <memory>
-#include <vector>
 
-struct SDL_Window;
-struct SDL_Renderer;
-
-namespace colour {
-struct Colour;
-}
-
-struct RenderObjects;
+namespace robosim {}
 
 namespace arenamodelview {
 
-class ArenaModelView {
-  private:
-    std::unique_ptr<RenderObjects> renderObjects;
+static bool running = true;
 
-    SDL_Window *window;
-    SDL_Renderer *renderer;
+void initModelView();
 
-    void buildGui();
-
-    template <typename Function, typename V>
-    void renderColourDraw(Function, colour::Colour, std::vector<V>);
-
-  public:
-    static bool running;
-
-    ArenaModelView();
-    ~ArenaModelView();
-
-    void mainLoop(const robosim::MonitorVec &);
-};
+void mainLoop(const robosim::MonitorVec &);
 
 } // namespace arenamodelview
 

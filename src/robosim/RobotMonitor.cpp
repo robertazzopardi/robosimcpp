@@ -18,12 +18,6 @@
 #include <string>
 #include <type_traits>
 
-namespace arenamodel {
-class ArenaModel;
-}
-
-using arenamodel::ArenaModel;
-using arenamodelview::ArenaModelView;
 using robosim::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
 
@@ -50,7 +44,7 @@ bool RobotMonitor::setTravelSpeed(int travelSpeed) {
 }
 
 template <typename Condition> void RobotMonitor::wait(Condition condition) {
-    while (ArenaModelView::running && condition()) {
+    while (arenamodelview::running && condition()) {
         SDL_Delay(DELAY);
     }
 }

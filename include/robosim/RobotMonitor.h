@@ -37,9 +37,10 @@ class RobotMonitor {
 
     int getTravelSpeed();
 
+    bool verbose;
+
   public:
     RobotMonitor(bool);
-    bool verbose;
 
     virtual ~RobotMonitor();
 
@@ -130,9 +131,14 @@ class RobotMonitor {
     /**
      * If this method is not overridden then the monitor writes various bits of
      * robot state to the screen, then sleeps.
+     *
+     * @param running Pointer to whether the simulation is still running
      */
     virtual void run(bool *);
 
+    /**
+     * Logs the robots current observations and properties
+     */
     void debug();
 };
 
