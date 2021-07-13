@@ -8,80 +8,90 @@
  * @copyright Copyright (c) 2021
  *
  */
+
 #include "ArenaModel.h"
 #include "MyGridCell.h"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <string>
+#include <vector>
 
 using arenamodel::ArenaModel;
 using mygridcell::OccupancyType;
-using Cell = mygridcell::MyGridCell<OccupancyType>;
 
 constexpr auto SIZE = 800;
 const std::regex reg("\\s*,\\s*");
 
-ArenaModel::ArenaModel(const char *configFileName, int arenaWidth,
-                       int arenaHeight)
-    : grid(arenaHeight, std::vector<Cell>(arenaWidth, Cell::getEmptyCell())) {
+int ArenaModel::arenaWidthInCells = 0;
+int ArenaModel::arenaHeightInCells = 0;
+float ArenaModel::cellWidth = 0;
+arenamodel::Grid ArenaModel::grid;
 
-    this->configFileName = configFileName;
-    arenaWidthInCells = arenaWidth;
-    arenaHeightInCells = arenaHeight;
+void ArenaModel::makeModel(const char *configFileName) {
+    parseConfigFile(configFileName);
+}
+
+void ArenaModel::makeModel(int width, int height) {
+    Grid m(width, Row(height));
+    grid = m;
+
+    arenaWidthInCells = width;
+    arenaHeightInCells = height;
 
     cellWidth = SIZE / arenaHeightInCells;
 
-    readConfig();
+    // Add boundaries to empty grid
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
+                grid[x][y].setCellType(OccupancyType::OBSTACLE);
+            }
+        }
+    }
 }
 
 ArenaModel::~ArenaModel() {}
 
-int ArenaModel::getArenaWidthInCells() { return arenaWidthInCells; }
-
-int ArenaModel::getArenaHeightInCells() { return arenaHeightInCells; }
-
-float ArenaModel::getCellWidth() { return cellWidth; }
-
-bool ArenaModel::setOccupancy(int colPos, int rowPos, OccupancyType type) {
-    auto result = false;
-
+bool ArenaModel::setOccupancy(int row, int col, OccupancyType type) {
     auto size = static_cast<int>(grid.size());
 
     // Check the bounds of the col and row pos
-    if ((rowPos >= 0 && rowPos < size) && (colPos >= 0 && colPos < size)) {
+    if ((row >= 0 && row <= size) && (col >= 0 && col <= size)) {
         // Only change the occupancy of a cell if it is empty
         // Note, separate methods will be used when modelling the robot
-        auto cell = &grid.at(rowPos).at(colPos);
+        auto cell = &grid[col][row];
+        // auto cell = &grid[row][col];
         if (cell->isEmpty()) {
             cell->setCellType(type);
-            result = true;
+            return true;
         }
     }
 
-    return result;
+    return false;
 }
 
-OccupancyType ArenaModel::getOccupancy(int colPos, int rowPos) {
-    auto size = static_cast<int>(grid.size());
+OccupancyType ArenaModel::getOccupancy(int row, int col) {
+    static auto size = static_cast<int>(grid.size());
 
     // Check the bounds of the col and row pos
-    if ((rowPos >= 0 && rowPos < size) && (colPos >= 0 && colPos < size)) {
-        return grid.at(rowPos).at(colPos).getCellType();
+    if ((row >= 0 && row <= size) && (col >= 0 && col <= size)) {
+        return grid[col][row].getCellType();
     }
 
     return OccupancyType::UNKNOWN;
 }
 
-bool ArenaModel::parseConfigLine(std::string line, int *r, int *c) {
-    auto tokens = tokenize(line);
+arenamodel::ConfigLine ArenaModel::tokenize(std::string str) {
+    // Get an iterator after filtering through the regex
+    std::sregex_token_iterator iter(str.begin(), str.end(), reg, -1);
 
-    auto colPos = std::stoi(tokens.at(0));
-    auto rowPos = std::stoi(tokens.at(1));
-    *c = colPos > *c ? colPos : *c;
-    *r = rowPos > *r ? rowPos : *r;
+    std::sregex_token_iterator end;
 
-    auto occTypeStr = tokens.at(2);
+    std::vector<std::string> tokens(iter, end);
+
+    auto occTypeStr = tokens[2];
     auto occ = OccupancyType::EMPTY;
 
     if (occTypeStr == "OBSTACLE") {
@@ -94,68 +104,57 @@ bool ArenaModel::parseConfigLine(std::string line, int *r, int *c) {
         occ = OccupancyType::RED;
     }
 
-    if (occ != OccupancyType::EMPTY && !setOccupancy(colPos, rowPos, occ)) {
-        std::cout << "Error in parseConfigLine setting (" << colPos << ","
-                  << rowPos << ")" << std::endl;
-        return false;
-    }
-    return true;
+    return {std::stoi(tokens[0]), std::stoi(tokens[1]), occ};
 }
 
-std::vector<std::string> ArenaModel::tokenize(std::string str) {
-    // Get an iterator after filtering through the regex
-    std::sregex_token_iterator iter(str.begin(), str.end(), reg, -1);
-    // Keep a dummy end iterator - Needed to construct a vector
-    // using (start, end) iterators.
-    std::sregex_token_iterator end;
-
-    return {iter, end};
-}
-
-bool ArenaModel::readConfig() {
+void ArenaModel::parseConfigFile(const char *filePath) {
     std::fstream file;
-    file.open(configFileName);
+    file.open(filePath);
 
     std::string line;
 
-    auto result = true;
-
-    // Use a while loop together with the getline() function to read the file
-    // line by line
-    int r = 0;
-    int c = 0;
+    std::vector<ConfigLine> lines;
     while (getline(file, line)) {
         // Output the text from the file
-        if (line != "")
-            result = parseConfigLine(line, &r, &c);
+        if (line != "") {
+            lines.push_back(tokenize(line));
+        }
     }
 
-    file.close();
+    auto maxRow = std::max_element(lines.begin(), lines.end(),
+                                   [](const auto &a, const auto &b) {
+                                       return a.row < b.row;
+                                   })
+                      ->row +
+                  1;
+    auto maxCol = std::max_element(lines.begin(), lines.end(),
+                                   [](const auto &a, const auto &b) {
+                                       return a.col < b.col;
+                                   })
+                      ->col +
+                  1;
 
-    grid.resize(r + 1);
-    for (auto &row : grid) {
-        row.resize(c + 1, Cell::getEmptyCell());
-    }
+    Grid m(maxCol, Row(maxRow));
+    grid = m;
 
-    arenaHeightInCells = r + 1;
-    arenaWidthInCells = c + 1;
+    arenaWidthInCells = maxRow;
+    arenaHeightInCells = maxCol;
 
     cellWidth = (float)SIZE / arenaWidthInCells;
 
-    return result;
+    for (auto l : lines) {
+        setOccupancy(l.row, l.col, l.occ);
+    }
 }
 
-std::string ArenaModel::toString() {
-    auto result = "Arena: " + std::to_string(getArenaWidthInCells()) + " x " +
-                  std::to_string(getArenaHeightInCells()) + "\n";
+void ArenaModel::toString() {
+    auto result = "Arena: " + std::to_string(arenaWidthInCells) + " x " +
+                  std::to_string(arenaHeightInCells) + "\n";
 
     for (auto var : grid) {
         for (auto c : var) {
-            result += c.toString();
+            std::cout << c.toString() << " ";
         }
-        result += "\n";
+        std::cout << "\n";
     }
-    return result;
 }
-
-arenamodel::Grid ArenaModel::getGrid() { return grid; }

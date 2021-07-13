@@ -38,7 +38,6 @@ set(LIB_INSTALL_PATH lib)
 file(GLOB SOURCES ${SOURCE_PATH}/*.h ${SOURCE_PATH}/*.cpp ${INCLUDE_PATH}/*.h)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 target_compile_options(
   ${PROJECT_NAME}
   PUBLIC -Werror
@@ -46,8 +45,10 @@ target_compile_options(
          -Wextra
          -Oz
          -flto
-         -std=c++20
-         -pthread)
+         -std=c++17
+         -pthread
+         -ffunction-sections
+         -fdata-sections)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ./)
 target_include_directories(${PROJECT_NAME} PUBLIC src/${PROJECT_NAME}

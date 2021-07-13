@@ -13,8 +13,11 @@
  * ./main
  *
  */
+// clang++ -Wall -Werror -Wextra -std=c++20 -o main main.cpp
+// -I/usr/local/include/robosim -L/usr/local/lib -lrobosim; ./main
 
 #include <iostream>
+#include <random>
 #include <robosim.h>
 
 #define CONFIG_NAME "./defaultConfig.txt"
@@ -24,26 +27,32 @@ class Robot : public robosim::RobotMonitor {
     // Inherit constructor (essentially super the RobotMonitor constructor)
     Robot(bool verbose) : robosim::RobotMonitor(verbose) {}
 
-    // Override the run method
-    // The code here will be executed by the robot
+    // Override run, to implement the robots behaviour
     void run(bool *running) {
+        std::cout << "Starting Robot: " << serialNumber << std::endl;
+
         while (*running) {
-            std::cout << "Hello Robot " << std::endl;
             travel();
+
             rotate(90);
-            // debug();
+            // setDirection(-90);
+            debug();
         }
     }
 };
 
 int main(void) {
-    Robot robot(false);
+    robosim::MonitorVec robots = robosim::getRobots<Robot>(1);
+    // robosim::MonitorVec robots = robosim::getRobots<Robot>(2);
 
-    robosim::EnvController env(CONFIG_NAME, 10, 10, &robot);
+    robosim::EnvController env(CONFIG_NAME, robots);
+    // robosim::EnvController env(5, 5, robots);
 
-    robot.setTravelSpeed(50);
+    for (auto &robot : robots) {
+        robot->setTravelSpeed(50);
+    }
 
-    env.updateEnv();
+    env.startSimulation();
 
     return 0;
 }

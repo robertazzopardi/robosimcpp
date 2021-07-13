@@ -28,20 +28,22 @@ using robosim::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
 
 constexpr auto Sim = typecasting::cast_ptr<SimulatedRobot>;
-constexpr auto Arena = typecasting::cast_ptr<ArenaModel>;
-constexpr auto MSim = typecasting::make_ptr<SimulatedRobot, ArenaModel *>;
+constexpr auto MSim = typecasting::make_ptr<SimulatedRobot, bool>;
 
 constexpr auto DELAY = 100;
 
-RobotMonitor::RobotMonitor(bool verbose) { this->verbose = verbose; }
+int RobotMonitor::robotCount = 1;
+
+RobotMonitor::RobotMonitor(bool verbose) {
+    this->verbose = verbose;
+    serialNumber = robotCount++;
+}
 
 RobotMonitor::~RobotMonitor() {}
 
 void *RobotMonitor::getRobot() { return robot.get(); }
 
-void RobotMonitor::setArenaModel(std::shared_ptr<void> model) {
-    robot = MSim(Arena(model).get());
-}
+void RobotMonitor::setRobot() { robot = MSim(true); }
 
 bool RobotMonitor::setTravelSpeed(int travelSpeed) {
     return Sim(robot)->setTravelSpeed(travelSpeed);
@@ -139,6 +141,7 @@ void RobotMonitor::run(bool *running) {
 void RobotMonitor::debug() {
     auto c = getCSenseColor();
 
+    std::cout << "Debug Robot " << serialNumber << std::endl;
     std::cout << "Pose: (" << getX() << "," << getY() << ") with heading "
               << getHeading() << std::endl;
     std::cout << "with a current travel speed of " << getTravelSpeed()

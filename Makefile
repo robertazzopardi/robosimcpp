@@ -60,3 +60,6 @@ analyse:
     	$(SCAN) $(SCANFLAGS) $(CC) $(CFLAGS) --analyze -fsanitize=address $(INCLUDES) $$file ; \
 	done
 	$(RM) *.plist
+
+bloaty:
+	bloaty build/librobosim.dylib

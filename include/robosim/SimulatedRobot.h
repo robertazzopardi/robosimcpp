@@ -12,24 +12,29 @@
 #ifndef __SIMULATED_ROBOT_H__
 #define __SIMULATED_ROBOT_H__
 
+#include <SDL_Rect.h>
+#include <SDL_stdinc.h>
+
 namespace colour {
 struct Colour;
 } // namespace colour
 
-namespace arenamodel {
-class ArenaModel;
-} // namespace arenamodel
-
-namespace arenamodelview {
-class ArenaModelView;
-} // namespace arenamodelview
-
 namespace simulatedrobot {
+
+struct Circle {
+    Sint16 x;
+    Sint16 y;
+    Sint16 r;
+};
+
+struct RobotRender {
+    Circle body;
+    Circle sensor;
+    SDL_FPoint radius;
+};
 
 class SimulatedRobot {
   private:
-    arenamodel::ArenaModel *model; // Model of the Arena
-
     // The instance parameters for the characteristics of our simulated robot
     struct Attributes {
         int travelSpeed;                  // mm per second.
@@ -52,9 +57,14 @@ class SimulatedRobot {
         int sensorDirection;    // Angle (in degrees) from the robot heading
                                 // [-90..+90]
         int currentSensorAngle; // rounded to nearest degree in range [-90..+90]
-    } attributes;
+    };
+
+    Attributes attributes;
 
     bool isColliding(int, int, int, int);
+
+    // std::unique_ptr<RobotRender> robotRender;
+    RobotRender robotRender;
 
     /**
      * Pose: sets the heading of the robot
@@ -67,7 +77,8 @@ class SimulatedRobot {
   public:
     // bool shouldStop = false;
 
-    SimulatedRobot(arenamodel::ArenaModel *);
+    // SimulatedRobot(arenamodel::ArenaModel *);
+    SimulatedRobot(bool);
     ~SimulatedRobot();
 
     auto getRobotBodySize();
@@ -179,12 +190,18 @@ class SimulatedRobot {
      */
     int getUSenseRange();
 
+    // Update the Robot
+    void update();
+
+    // RobotRender *getRenderObject();
+    RobotRender getRenderObject();
+
     /**
      * Updates the position of the robot in response to any locomotion
      * instruction Currently assumes that the update delay is 1 second, to
      * simplify speed calculations
      */
-    void run(arenamodelview::ArenaModelView *);
+    void run();
 };
 
 } // namespace simulatedrobot

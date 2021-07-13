@@ -14,9 +14,9 @@
 #include "Casting.h"
 #include "RobotMonitor.h"
 #include "SimulatedRobot.h"
-#include <future>
-#include <iostream>
+#include <thread>
 #include <type_traits>
+#include <vector>
 
 using arenamodel::ArenaModel;
 using arenamodelview::ArenaModelView;
@@ -24,34 +24,47 @@ using robosim::EnvController;
 using robosim::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
 
-constexpr auto Arena =
-    typecasting::make_ptr<ArenaModel, const char *, int, int>;
-constexpr auto View =
-    typecasting::make_ptr<ArenaModelView, ArenaModel *, SimulatedRobot *>;
+constexpr auto View = typecasting::make_ptr<ArenaModelView>;
 constexpr auto ModelView = typecasting::cast_ptr<ArenaModelView>;
 constexpr auto SimRobot = typecasting::cast<SimulatedRobot *>;
-constexpr auto Model = typecasting::cast<ArenaModel *>;
 
-EnvController::EnvController(const char *confFileName, int cols, int rows,
-                             RobotMonitor *monitor) {
-    model = Arena(confFileName, cols, rows);
+EnvController::EnvController(const char *confFileName,
+                             const MonitorVec &monitors) {
 
-    myMonitor = monitor;
-    myMonitor->setArenaModel(model);
+    ArenaModel::makeModel(confFileName);
 
-    view = View(Model(model.get()), SimRobot(myMonitor->getRobot()));
+    init(monitors);
+}
 
-    std::cout << Model(model.get())->toString() << std::endl;
+EnvController::EnvController(int rows, int cols, const MonitorVec &monitors) {
+
+    ArenaModel::makeModel(rows, cols);
+
+    init(monitors);
 }
 
 EnvController::~EnvController() {}
 
-void EnvController::updateEnv() {
-    auto resRobotMonitor =
-        std::async(&RobotMonitor::run, myMonitor, &ArenaModelView::running);
-    auto resSimulatedRobot =
-        std::async(&SimulatedRobot::run, SimRobot(myMonitor->getRobot()),
-                   ModelView(view).get());
+void EnvController::init(const MonitorVec &monitors) {
+    myMonitors = monitors;
 
-    ModelView(view)->mainLoop();
+    for (const auto &monitor : myMonitors) {
+        monitor->setRobot();
+    }
+
+    view = View();
+
+    ArenaModel::toString();
+}
+
+void EnvController::startSimulation() {
+
+    for (auto monitor : myMonitors) {
+        std::thread(&RobotMonitor::run, monitor, &ArenaModelView::running)
+            .detach();
+        std::thread(&SimulatedRobot::run, SimRobot(monitor->getRobot()))
+            .detach();
+    }
+
+    ModelView(view)->mainLoop(myMonitors);
 }

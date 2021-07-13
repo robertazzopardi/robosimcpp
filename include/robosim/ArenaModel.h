@@ -13,44 +13,43 @@
 #ifndef __ARENA_MODEL_H__
 #define __ARENA_MODEL_H__
 
+#include "MyGridCell.h"
 #include <iosfwd>
 #include <vector>
 
-namespace mygridcell {
-enum OccupancyType : int;
-
-template <typename T> class MyGridCell;
-} // namespace mygridcell
-
 namespace arenamodel {
 
-using Grid =
-    std::vector<std::vector<mygridcell::MyGridCell<mygridcell::OccupancyType>>>;
+using Cell = mygridcell::MyGridCell<mygridcell::OccupancyType>;
+using Row = std::vector<Cell>;
+using Grid = std::vector<Row>;
+
+struct ConfigLine {
+    int row;
+    int col;
+    mygridcell::OccupancyType occ;
+};
 
 class ArenaModel {
   private:
-    const char *configFileName;
-    int arenaWidthInCells;
-    int arenaHeightInCells;
-    float cellWidth;
-    Grid grid;
+    static arenamodel::ConfigLine tokenize(std::string);
+    static void parseConfigFile(const char *);
 
-    bool setOccupancy(int, int, mygridcell::OccupancyType);
-    bool parseConfigLine(std::string, int *, int *);
-    bool readConfig();
-    std::vector<std::string> tokenize(std::string);
-
-  public:
     ArenaModel(const char *, int, int);
     ~ArenaModel();
 
-    mygridcell::OccupancyType getOccupancy(int, int);
-    std::string toString();
-    int getArenaWidthInCells();
-    int getArenaHeightInCells();
-    float getCellWidth();
+  public:
+    static void makeModel(const char *);
+    static void makeModel(int, int);
 
-    Grid getGrid();
+    static int arenaWidthInCells;
+    static int arenaHeightInCells;
+    static float cellWidth;
+
+    static bool setOccupancy(int, int, mygridcell::OccupancyType);
+    static mygridcell::OccupancyType getOccupancy(int, int);
+    static void toString();
+
+    static Grid grid;
 };
 
 } // namespace arenamodel

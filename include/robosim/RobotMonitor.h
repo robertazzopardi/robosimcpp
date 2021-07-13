@@ -14,6 +14,8 @@
 #define __ROBOT_MONITOR_H__
 
 #include <memory>
+#include <stddef.h>
+#include <vector>
 
 namespace colour {
 struct Colour;
@@ -22,12 +24,14 @@ struct Colour;
 namespace robosim {
 
 class RobotMonitor {
+  protected:
+    int serialNumber;
+
   private:
+    static int robotCount;
+
     // stored as void, purely to hide simulated robot
     std::shared_ptr<void> robot;
-
-    // int delay;
-    bool verbose;
 
     template <typename fn> void wait(fn);
 
@@ -35,9 +39,11 @@ class RobotMonitor {
 
   public:
     RobotMonitor(bool);
-    ~RobotMonitor();
+    bool verbose;
 
-    void setArenaModel(std::shared_ptr<void>);
+    virtual ~RobotMonitor();
+
+    void setRobot();
 
     void *getRobot();
 
@@ -129,6 +135,18 @@ class RobotMonitor {
 
     void debug();
 };
+
+using RobotPtr = std::shared_ptr<RobotMonitor>;
+
+using MonitorVec = std::vector<RobotPtr>;
+
+template <typename T> inline MonitorVec getRobots(size_t size) {
+    MonitorVec temp;
+    for (size_t i = 0; i < size; i++) {
+        temp.push_back((std::make_shared<T>((false))));
+    }
+    return temp;
+}
 
 } // namespace robosim
 

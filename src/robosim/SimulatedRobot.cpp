@@ -13,9 +13,12 @@
 #include "ArenaModelView.h"
 #include "Colour.h"
 #include "MyGridCell.h"
+#include <SDL_Rect.h>
 #include <SDL_timer.h>
+#include <algorithm>
 #include <iostream>
 #include <math.h>
+#include <random>
 #include <stdlib.h>
 #include <string>
 
@@ -49,20 +52,52 @@ using arenamodelview::ArenaModelView;
 using mygridcell::OccupancyType;
 using simulatedrobot::SimulatedRobot;
 
-SimulatedRobot::SimulatedRobot(ArenaModel *model) : attributes{} {
-    this->model = model;
+void setRandomPosition() {}
 
-    auto center = static_cast<int>((3 * model->getCellWidth()) / 2);
-    // std::cout << center << std::endl;
-    // Position the robot in the center of the (1,1) cell
-    attributes.xLocation = center;     // center of (1, 1)
-    attributes.yLocation = center;     // center of (1, 1)
+SimulatedRobot::SimulatedRobot(bool randomLocation) : attributes{} {
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<int> distX(1,
+                                             ArenaModel::arenaWidthInCells - 1);
+    std::uniform_int_distribution<int> distY(1, ArenaModel::arenaHeightInCells -
+                                                    1);
+
+    if (randomLocation) {
+        int x = 0, y = 0;
+
+        do {
+            x = distX(mt);
+            y = distY(mt);
+        } while (ArenaModel::getOccupancy(x, y) != OccupancyType::EMPTY);
+
+        ArenaModel::setOccupancy(x, y, OccupancyType::ROBOT);
+
+        auto r = ArenaModel::cellWidth / 2;
+        attributes.xLocation = (x * ArenaModel::cellWidth) + r;
+        attributes.yLocation = (y * ArenaModel::cellWidth) + r;
+
+    } else {
+        auto center = static_cast<int>(3 * ArenaModel::cellWidth / 2);
+
+        // Position the robot in the center of the (1,1) cell
+        attributes.xLocation = center; // center of (1, 1)
+        attributes.yLocation = center; // center of (1, 1)
+    }
+
     setTravelSpeed(LOWER_TRAVELSPEED); // i->e-> no speed->
     setHeading(0);                     // i->e-> due north
 
     attributes.rotationSpeedPerUpdate =
         static_cast<double>(ROTATION_SPEED / 10);
     // Set any other parameters
+
+    // Create the robots render object
+    auto r = ArenaModel::cellWidth / 3;
+    robotRender.body.r = r;
+    auto rs = r / 6;
+    robotRender.sensor.r = rs;
+
+    update();
 }
 
 SimulatedRobot::~SimulatedRobot() {}
@@ -127,7 +162,7 @@ bool SimulatedRobot::setTravelSpeed(int travelSpeed) {
 int SimulatedRobot::getTravelSpeed() { return attributes.travelSpeed; }
 
 void SimulatedRobot::travel() {
-    attributes.currentDistanceToDestination += model->getCellWidth();
+    attributes.currentDistanceToDestination += ArenaModel::cellWidth;
 }
 
 bool SimulatedRobot::isAtDestination() {
@@ -150,11 +185,11 @@ bool SimulatedRobot::isAtRotation() {
 bool SimulatedRobot::isBumperPressed() { return attributes.bumperPressed; }
 
 colour::Colour SimulatedRobot::getCSenseColor() {
-    auto cellWidth = model->getCellWidth();
+    auto cellWidth = ArenaModel::cellWidth;
     auto colPos = floor(getX() / cellWidth);
     auto rowPos = floor(getY() / cellWidth);
 
-    auto occupancy = model->getOccupancy(colPos, rowPos);
+    auto occupancy = ArenaModel::getOccupancy(rowPos, colPos);
     switch (occupancy) {
     case OccupancyType::RED:
         return colour::RED;
@@ -217,13 +252,13 @@ bool SimulatedRobot::isColliding(int xPos, int yPos, int xDelta, int yDelta) {
     int xBound; // boundary of the robot in the x axis (either +ve or -ve)
     int yBound; // boundary of the robot in the y axis (either +ve or -ve)
     auto collision = false;         // collision flag
-    auto w = model->getCellWidth(); // cell width
-    auto h = model->getCellWidth(); // cell height
+    auto w = ArenaModel::cellWidth; // cell width
+    auto h = ArenaModel::cellWidth; // cell height
 
     auto x = xPos + xDelta;
     auto y = yPos + yDelta;
 
-    auto r = (model->getCellWidth() / 3) * .9;
+    auto r = (ArenaModel::cellWidth / 3) * .9;
 
     if (xDelta >= 0) {
         xBound = x + r; // check on the right most part of the robot
@@ -237,11 +272,11 @@ bool SimulatedRobot::isColliding(int xPos, int yPos, int xDelta, int yDelta) {
         yBound = y - r; // check on the top most part of the robot
     }
 
-    if (model->getOccupancy(xBound / w, yPos / h) ==
+    if (ArenaModel::getOccupancy(xBound / w, yPos / h) ==
             OccupancyType::OBSTACLE || // Check left/right - x axis only
-        model->getOccupancy(xBound / w, yBound / h) ==
+        ArenaModel::getOccupancy(xBound / w, yBound / h) ==
             OccupancyType::OBSTACLE || // Check diagonal - x/y axis
-        model->getOccupancy(xPos / w, yBound / h) ==
+        ArenaModel::getOccupancy(xPos / w, yBound / h) ==
             OccupancyType::OBSTACLE // Check up/down - y axis only
     ) {
         collision = true;
@@ -255,7 +290,45 @@ bool SimulatedRobot::isColliding(int xPos, int yPos, int xDelta, int yDelta) {
 // =======================================================================
 // Robot Update
 
-void SimulatedRobot::run(arenamodelview::ArenaModelView *view) {
+void SimulatedRobot::update() {
+    // parameters
+    auto x = getX();
+    auto y = getY();
+    // std::cout << x << " " << y << " " << ArenaModel::cellWidth << std::endl;
+
+    auto angle = getHeadingInRadians();
+
+    auto scale = robotRender.body.r * .9;
+
+    auto rx = x + sin(angle) * scale;
+    auto ry = y + cos(angle) * scale;
+
+    // body
+    robotRender.body.x = x;
+    robotRender.body.y = y;
+
+    // heading line
+    robotRender.radius.x = rx;
+    robotRender.radius.y = ry;
+
+    // sensor
+    auto sangle = getDirectionInRadians() + angle;
+
+    auto sx = x + sin(sangle) * scale;
+    auto sy = y + cos(sangle) * scale;
+
+    robotRender.sensor.x = sx;
+    robotRender.sensor.y = sy;
+}
+
+// simulatedrobot::RobotRender *SimulatedRobot::getRenderObject() {
+//     return robotRender.get();
+// }
+simulatedrobot::RobotRender SimulatedRobot::getRenderObject() {
+    return robotRender;
+}
+
+void SimulatedRobot::run() {
     while (ArenaModelView::running) {
         auto deltaDist = 0;     // Represents the distance to travel
         auto deltaRotation = 0; // Represents the rotation distance to rotate
@@ -339,7 +412,7 @@ void SimulatedRobot::run(arenamodelview::ArenaModelView *view) {
             }
         }
 
-        view->update();
+        update();
 
         SDL_Delay(UPDATE_DELAY);
     }

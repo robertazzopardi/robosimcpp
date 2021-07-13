@@ -12,25 +12,27 @@
 #ifndef __ENV_CONTROLLER_H__
 #define __ENV_CONTROLLER_H__
 
+#include "RobotMonitor.h"
 #include <memory>
 
 namespace robosim {
 
-class RobotMonitor;
-
 class EnvController {
   private:
-    robosim::RobotMonitor *myMonitor;
+    MonitorVec myMonitors;
 
     // Store as void smart pointer type, purely to hide the declarations
-    std::shared_ptr<void> model;
     std::shared_ptr<void> view;
 
+    void init(const MonitorVec &);
+
   public:
-    EnvController(const char *, int, int, RobotMonitor *);
+    EnvController(const char *, const MonitorVec &);
+    EnvController(int, int, const MonitorVec &);
+
     ~EnvController();
 
-    void updateEnv();
+    void startSimulation();
 };
 
 } // namespace robosim

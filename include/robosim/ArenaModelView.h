@@ -12,25 +12,16 @@
 #ifndef __ARENA_MODEL_VIEW_H__
 #define __ARENA_MODEL_VIEW_H__
 
+#include "RobotMonitor.h"
 #include <memory>
 #include <vector>
 
 struct SDL_Window;
 struct SDL_Renderer;
 
-struct RobotRender;
-
 namespace colour {
 struct Colour;
 }
-
-namespace simulatedrobot {
-class SimulatedRobot;
-} // namespace simulatedrobot
-
-namespace arenamodel {
-class ArenaModel;
-} // namespace arenamodel
 
 struct RenderObjects;
 
@@ -38,9 +29,6 @@ namespace arenamodelview {
 
 class ArenaModelView {
   private:
-    arenamodel::ArenaModel *model;
-    simulatedrobot::SimulatedRobot *robot;
-    std::unique_ptr<RobotRender> robotRender;
     std::unique_ptr<RenderObjects> renderObjects;
 
     SDL_Window *window;
@@ -54,11 +42,10 @@ class ArenaModelView {
   public:
     static bool running;
 
-    ArenaModelView(arenamodel::ArenaModel *, simulatedrobot::SimulatedRobot *);
+    ArenaModelView();
     ~ArenaModelView();
 
-    void update();
-    void mainLoop();
+    void mainLoop(const robosim::MonitorVec &);
 };
 
 } // namespace arenamodelview
