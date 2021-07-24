@@ -25,7 +25,8 @@
 class Robot : public robosim::RobotMonitor {
   public:
     // Inherit constructor (essentially super the RobotMonitor constructor)
-    Robot(bool verbose) : robosim::RobotMonitor(verbose) {}
+    Robot(bool verbose, colour::Colour colour)
+        : robosim::RobotMonitor(verbose, colour) {}
 
     // Override run, to implement the robots behaviour
     void run(bool *running) {
@@ -42,16 +43,10 @@ class Robot : public robosim::RobotMonitor {
 };
 
 int main(void) {
+    auto robots = robosim::getRobots<Robot>(1, colour::OFF_BLACK);
 
-    robosim::MonitorVec robots = robosim::getRobots<Robot>(1);
-    // robosim::MonitorVec robots = robosim::getRobots<Robot>(2);
-
-    robosim::EnvController(robots, CONFIG_NAME);
-    // robosim::EnvController env(robots, 10, 10);
-
-    for (auto &robot : robots) {
-        robot->setTravelSpeed(50);
-    }
+    robosim::EnvController(robots, CONFIG_NAME, 50);
+    // robosim::EnvController(robots, 10, 10, 50);
 
     robosim::startSimulation();
 

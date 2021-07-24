@@ -18,26 +18,32 @@
 #include <string>
 #include <type_traits>
 
-using robosim::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
 
 constexpr auto Sim = typecasting::cast_ptr<SimulatedRobot>;
-constexpr auto MSim = typecasting::make_ptr<SimulatedRobot, bool>;
+constexpr auto MSim =
+    typecasting::make_ptr<SimulatedRobot, bool, colour::Colour>;
 
 constexpr auto DELAY = 100;
 
+namespace robosim::robotmonitor {
+
 int RobotMonitor::robotCount = 1;
 
-RobotMonitor::RobotMonitor(bool verbose) {
+RobotMonitor::RobotMonitor(bool verbose, colour::Colour colour) {
     this->verbose = verbose;
     serialNumber = robotCount++;
+    this->colour = colour;
 }
 
 RobotMonitor::~RobotMonitor() {}
 
 void *RobotMonitor::getRobot() { return robot.get(); }
 
-void RobotMonitor::setRobot() { robot = MSim(true); }
+void RobotMonitor::setRobot(int robotSpeed) {
+    robot = MSim(true, colour);
+    Sim(robot)->setTravelSpeed(robotSpeed);
+}
 
 bool RobotMonitor::setTravelSpeed(int travelSpeed) {
     return Sim(robot)->setTravelSpeed(travelSpeed);
@@ -65,6 +71,10 @@ void RobotMonitor::setDirection(int degrees) {
             return Sim(robot)->getDirection() != degrees;
         });
     }
+}
+
+void RobotMonitor::setPose(int x, int y, int heading) {
+    Sim(robot)->setPose(x, y, heading);
 }
 
 /**
@@ -151,3 +161,5 @@ void RobotMonitor::debug() {
                  "======="
               << std::endl;
 }
+
+} // namespace robosim::robotmonitor

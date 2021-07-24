@@ -87,8 +87,7 @@ void parseConfigFile(const char *filePath) {
                       ->col +
                   1;
 
-    Grid m(maxCol, Row(maxRow));
-    grid = m;
+    grid.resize(maxCol, Row(maxRow));
 
     cellWidth = (float)SIZE / grid[0].size();
 
@@ -102,8 +101,7 @@ void parseConfigFile(const char *filePath) {
 void makeModel(const char *configFileName) { parseConfigFile(configFileName); }
 
 void makeModel(int width, int height) {
-    Grid m(width, Row(height));
-    grid = m;
+    grid.resize(width, Row(height));
 
     cellWidth = SIZE / grid.size();
 

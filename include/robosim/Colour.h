@@ -15,6 +15,8 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
+#include <stdint.h>
+
 namespace colour {
 
 constexpr auto OPAQUE = 255;
@@ -37,6 +39,7 @@ constexpr Colour BLACK = {0, 0, 0, OPAQUE};
 constexpr Colour WHITE = {255, 255, 255, OPAQUE};
 constexpr Colour OFF_WHITE = {245, 245, 245, OPAQUE};
 constexpr Colour OFF_BLACK = {48, 48, 48, OPAQUE};
+constexpr Colour OFF_RED = {255, 76, 76, OPAQUE};
 constexpr Colour LINE_BLUE = {0, 100, 255, OPAQUE};
 constexpr Colour OBSTACLE = {120, 120, 120, OPAQUE};
 

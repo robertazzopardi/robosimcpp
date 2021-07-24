@@ -12,7 +12,6 @@
 #include "ArenaModel.h"
 #include "Colour.h"
 #include "MyGridCell.h"
-#include "RobotMonitor.h"
 #include "SimulatedRobot.h"
 #include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
@@ -25,17 +24,24 @@
 #include <iostream>
 #include <memory>
 #include <stdlib.h>
-#include <type_traits>
 #include <vector>
+
+namespace robosim {
+namespace robotmonitor {
+class RobotMonitor;
+}
+} // namespace robosim
 
 static constexpr auto WINDOW_TITLE = "RoboSim";
 static constexpr auto FRAME_DELAY = 1000 / 60;
 
 using mygridcell::OccupancyType;
-using robosim::RobotMonitor;
+using robosim::robotmonitor::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
 
 namespace arenamodelview {
+
+bool running = true;
 
 namespace {
 
@@ -121,7 +127,7 @@ static void cleanUp() {
 
 } // namespace
 
-void mainLoop(const std::vector<robosim::RobotPtr> &monitors) {
+void mainLoop(const std::vector<simulatedrobot::SimulatedRobot *> &robots) {
     using namespace colour;
 
     SDL_Event event;
@@ -160,14 +166,15 @@ void mainLoop(const std::vector<robosim::RobotPtr> &monitors) {
                          renderObjects->points);
 
         // Draw Robots
-        for (auto monitor : monitors) {
-            auto renderObject =
-                static_cast<SimulatedRobot *>(monitor->getRobot())
-                    ->getRenderObject();
+        for (auto robot : robots) {
+            auto renderObject = robot->getRenderObject();
+            // robot->getRenderObject();
 
             filledCircleRGBA(renderer, renderObject.body.x, renderObject.body.y,
-                             renderObject.body.r, OFF_BLACK.r, OFF_BLACK.g,
-                             OFF_BLACK.b, OFF_BLACK.a);
+                             renderObject.body.r, renderObject.bodyColour.r,
+                             renderObject.bodyColour.g,
+                             renderObject.bodyColour.b,
+                             renderObject.bodyColour.a);
 
             SDL_SetRenderDrawColor(renderer, OFF_WHITE.r, OFF_WHITE.g,
                                    OFF_WHITE.b, OFF_WHITE.a);

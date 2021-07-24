@@ -16,6 +16,19 @@
 
 namespace robosim {
 
+namespace envcontroller {
+
+/**
+ * Initialise the Environment Controller
+ *
+ * @param robots vector of robots
+ * @param speed robots speed
+ * @param args config file path for pre set environments or the width and height
+ * for an only bordered arena
+ */
+// template <typename... Args>
+// void EnvController(const MonitorVec &, int, Args...);
+
 /**
  * Initialise the Environment Controller from a specified config file
  *
@@ -23,7 +36,7 @@ namespace robosim {
  * @param configFileName file path of the environment configuration file
  *
  */
-void EnvController(const MonitorVec &, const char *);
+void EnvController(const robotmonitor::MonitorVec &, const char *, int);
 
 /**
  * Create an Environment with given cell width and height, with a border of
@@ -34,12 +47,20 @@ void EnvController(const MonitorVec &, const char *);
  * @param cols number of columns
  *
  */
-void EnvController(const MonitorVec &, int, int);
+void EnvController(const robotmonitor::MonitorVec &, int, int, int);
 
 /**
  * Begin the simulation
  */
 void startSimulation();
+
+float getCellWidth();
+
+float getCellRadius();
+
+bool &isRunning();
+
+} // namespace envcontroller
 
 } // namespace robosim
 

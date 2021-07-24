@@ -53,7 +53,8 @@ using simulatedrobot::SimulatedRobot;
 
 void setRandomPosition() {}
 
-SimulatedRobot::SimulatedRobot(bool randomLocation) : attributes{} {
+SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
+    : attributes{} {
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_int_distribution<int> distX(1, arenamodel::grid[0].size() - 1);
@@ -93,6 +94,8 @@ SimulatedRobot::SimulatedRobot(bool randomLocation) : attributes{} {
     robotRender.body.r = r;
     auto rs = r / 6;
     robotRender.sensor.r = rs;
+
+    robotRender.bodyColour = colour;
 
     update();
 }

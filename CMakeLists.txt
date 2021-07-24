@@ -50,6 +50,11 @@ target_compile_options(
          -ffunction-sections
          -fdata-sections)
 
+add_custom_command(
+  TARGET ${PROJECT_NAME}
+  POST_BUILD
+  COMMAND du -h "${CMAKE_CURRENT_SOURCE_DIR}/build/lib${PROJECT_NAME}.dylib")
+
 target_include_directories(${PROJECT_NAME} PUBLIC ./)
 target_include_directories(${PROJECT_NAME} PUBLIC src/${PROJECT_NAME}
                                                   include/${PROJECT_NAME})

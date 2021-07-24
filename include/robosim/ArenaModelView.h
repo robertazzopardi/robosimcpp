@@ -12,17 +12,21 @@
 #ifndef __ARENA_MODEL_VIEW_H__
 #define __ARENA_MODEL_VIEW_H__
 
-#include "RobotMonitor.h"
+#include <vector>
 
 namespace robosim {}
 
+namespace simulatedrobot {
+class SimulatedRobot;
+}
+
 namespace arenamodelview {
 
-static bool running = true;
+extern bool running;
 
 void initModelView();
 
-void mainLoop(const robosim::MonitorVec &);
+void mainLoop(const std::vector<simulatedrobot::SimulatedRobot *> &);
 
 } // namespace arenamodelview
 

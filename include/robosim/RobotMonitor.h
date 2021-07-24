@@ -13,15 +13,14 @@
 #ifndef __ROBOT_MONITOR_H__
 #define __ROBOT_MONITOR_H__
 
+#include "Colour.h"
 #include <memory>
 #include <stddef.h>
 #include <vector>
 
-namespace colour {
-struct Colour;
-} // namespace colour
-
 namespace robosim {
+
+namespace robotmonitor {
 
 class RobotMonitor {
   protected:
@@ -39,14 +38,18 @@ class RobotMonitor {
 
     bool verbose;
 
+    colour::Colour colour;
+
   public:
-    RobotMonitor(bool);
+    RobotMonitor(bool, colour::Colour);
 
     virtual ~RobotMonitor();
 
-    void setRobot();
+    void setRobot(int);
 
     void *getRobot();
+
+    void setPose(int, int, int);
 
     /**
      * Sets the robots travel speed
@@ -129,30 +132,34 @@ class RobotMonitor {
     int getDirection();
 
     /**
+     * Logs the robots current observations and properties
+     */
+    void debug();
+
+    /**
      * If this method is not overridden then the monitor writes various bits of
      * robot state to the screen, then sleeps.
      *
      * @param running Pointer to whether the simulation is still running
      */
     virtual void run(bool *);
-
-    /**
-     * Logs the robots current observations and properties
-     */
-    void debug();
 };
 
 using RobotPtr = std::shared_ptr<RobotMonitor>;
-
 using MonitorVec = std::vector<RobotPtr>;
 
-template <typename T> inline MonitorVec getRobots(size_t size) {
+// template <typename T> using MonitorVec = std::vector<std::shared_ptr<T>>;
+
+template <typename T>
+inline MonitorVec getRobots(size_t size, colour::Colour colour) {
     MonitorVec temp;
     for (size_t i = 0; i < size; i++) {
-        temp.push_back((std::make_shared<T>((false))));
+        temp.push_back(std::make_shared<T>(false, colour));
     }
     return temp;
 }
+
+} // namespace robotmonitor
 
 } // namespace robosim
 
