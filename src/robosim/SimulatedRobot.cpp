@@ -68,7 +68,7 @@ SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
             y = distY(mt);
         } while (arenamodel::getOccupancy(x, y) != OccupancyType::EMPTY);
 
-        arenamodel::setOccupancy(x, y, OccupancyType::ROBOT);
+        arenamodel::setOccupancy({x, y, OccupancyType::ROBOT});
 
         auto r = arenamodel::cellWidth / 2;
         attributes.xLocation = (x * arenamodel::cellWidth) + r;
@@ -95,12 +95,13 @@ SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
     auto rs = r / 6;
     robotRender.sensor.r = rs;
 
-    robotRender.bodyColour = colour;
+    // robotRender.bodyColour = colour;
+    robotRender.bodyColour = new colour::Colour(colour);
 
     update();
 }
 
-SimulatedRobot::~SimulatedRobot() {}
+SimulatedRobot::~SimulatedRobot() { delete robotRender.bodyColour; }
 
 // =======================================================================
 

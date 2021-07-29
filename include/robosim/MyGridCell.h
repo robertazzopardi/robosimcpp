@@ -12,40 +12,31 @@
 #ifndef __MY_GRID_CELL_H__
 #define __MY_GRID_CELL_H__
 
-#include <map>
-
 namespace mygridcell {
 
-static const char *occupancySymbols[] = {" # ", " _ ", " * ", " r ",
-                                         " b ", " g ", " ? "};
+static const char *occupancySymbols[] = {"#", "_", "*", "r", "b", "g", "?"};
 
 enum OccupancyType { OBSTACLE, EMPTY, ROBOT, RED, BLUE, GREEN, UNKNOWN };
 
-template <typename T> class MyGridCell {
+class MyGridCell {
   private:
-    T cellType;
+    OccupancyType cellType;
 
   public:
-    explicit MyGridCell(T type) : cellType(type) {}
+    explicit MyGridCell(OccupancyType);
 
-    MyGridCell() : cellType(EMPTY) {}
+    MyGridCell();
 
-    T getCellType() const { return cellType; }
+    OccupancyType getCellType() const;
 
-    void setCellType(T type) { cellType = type; }
+    void setCellType(OccupancyType);
 
-    void setEmpty() { cellType = mygridcell::OccupancyType::EMPTY; }
+    void setEmpty();
 
-    bool isEmpty() { return cellType == OccupancyType::EMPTY; }
+    bool isEmpty() const;
 
-    const char *toString() const { return occupancySymbols[cellType]; }
-
-    // static MyGridCell getEmptyCell() {
-    //     return static_cast<MyGridCell>(OccupancyType::EMPTY);
-    // }
+    const char *toString() const;
 };
-
-using Cell = MyGridCell<OccupancyType>;
 
 } // namespace mygridcell
 

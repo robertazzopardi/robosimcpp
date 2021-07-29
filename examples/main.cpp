@@ -22,11 +22,11 @@
 
 #define CONFIG_NAME "./defaultConfig.txt"
 
-class Robot : public robosim::RobotMonitor {
+class Robot : public robosim::robotmonitor::RobotMonitor {
   public:
     // Inherit constructor (essentially super the RobotMonitor constructor)
     Robot(bool verbose, colour::Colour colour)
-        : robosim::RobotMonitor(verbose, colour) {}
+        : robosim::robotmonitor::RobotMonitor(verbose, colour) {}
 
     // Override run, to implement the robots behaviour
     void run(bool *running) {
@@ -43,12 +43,12 @@ class Robot : public robosim::RobotMonitor {
 };
 
 int main(void) {
-    auto robots = robosim::getRobots<Robot>(1, colour::OFF_BLACK);
+    robosim::envcontroller::makeRobots<Robot>(3, colour::OFF_BLACK);
 
-    robosim::EnvController(robots, CONFIG_NAME, 50);
-    // robosim::EnvController(robots, 10, 10, 50);
+    robosim::envcontroller::EnvController(CONFIG_NAME, 50);
+    // robosim::envcontroller::EnvController(10, 10, 50);
 
-    robosim::startSimulation();
+    robosim::envcontroller::startSimulation();
 
     return 0;
 }

@@ -10,23 +10,37 @@
  */
 #include "RobotMonitor.h"
 #include "ArenaModelView.h"
-#include "Casting.h"
 #include "Colour.h"
+#include "EnvController.h"
 #include "SimulatedRobot.h"
 #include <SDL_timer.h>
 #include <iostream>
 #include <string>
 #include <type_traits>
 
+namespace {
+
 using simulatedrobot::SimulatedRobot;
 
-constexpr auto Sim = typecasting::cast_ptr<SimulatedRobot>;
-constexpr auto MSim =
-    typecasting::make_ptr<SimulatedRobot, bool, colour::Colour>;
+template <typename T> inline auto cast_ptr(std::shared_ptr<void> ptr) {
+    return std::static_pointer_cast<T>(ptr);
+}
+
+constexpr auto Sim = cast_ptr<SimulatedRobot>;
 
 constexpr auto DELAY = 100;
 
+template <typename Condition> void wait(Condition condition) {
+    while (arenamodelview::running && condition()) {
+        SDL_Delay(DELAY);
+    }
+}
+
+} // namespace
+
 namespace robosim::robotmonitor {
+
+// MonitorVec robots;
 
 int RobotMonitor::robotCount = 1;
 
@@ -41,18 +55,12 @@ RobotMonitor::~RobotMonitor() {}
 void *RobotMonitor::getRobot() { return robot.get(); }
 
 void RobotMonitor::setRobot(int robotSpeed) {
-    robot = MSim(true, colour);
+    robot = std::make_shared<SimulatedRobot>(true, colour);
     Sim(robot)->setTravelSpeed(robotSpeed);
 }
 
 bool RobotMonitor::setTravelSpeed(int travelSpeed) {
     return Sim(robot)->setTravelSpeed(travelSpeed);
-}
-
-template <typename Condition> void RobotMonitor::wait(Condition condition) {
-    while (arenamodelview::running && condition()) {
-        SDL_Delay(DELAY);
-    }
 }
 
 void RobotMonitor::travel() {
@@ -145,21 +153,26 @@ void RobotMonitor::run(bool *running) {
 void RobotMonitor::debug() {
     auto c = getCSenseColor();
 
-    std::cout << "Debug Robot " << serialNumber << std::endl;
-    std::cout << "Pose: (" << getX() << "," << getY() << ") with heading "
-              << getHeading() << std::endl;
-    std::cout << "with a current travel speed of " << getTravelSpeed()
-              << "mm per second" << std::endl;
-    std::cout << "Bumper is pressed: " << (isBumperPressed() ? "true" : "false")
-              << std::endl;
-    std::cout << "Colour Sensor: (" << std::to_string(c.r) << ", "
-              << std::to_string(c.g) << ", " << std::to_string(c.b) << ") "
-              << std::endl;
-    std::cout << "Range Sensor: " << getUSenseRange() << " with direction "
-              << getDirection() << std::endl;
-    std::cout << "==========================================================="
-                 "======="
-              << std::endl;
+    std::cout << "Debug Robot " << serialNumber << "\nPose: (" << getX() << ","
+              << getY() << ") with heading " << getHeading()
+              << "\nwith a current travel speed of " << getTravelSpeed()
+              << "mm per second\nBumper is pressed: "
+              << (isBumperPressed() ? "true" : "false") << "\nColour Sensor: ("
+              << std::to_string(c.r) << ", " << std::to_string(c.g) << ", "
+              << std::to_string(c.b) << ")\nRange Sensor: " << getUSenseRange()
+              << " with direction " << getDirection()
+              << "\n==========================================================="
+                 "=======\n";
+}
+
+int RobotMonitor::getGridX() {
+    return (int)((((double)getX() / envcontroller::getCellWidth()) * 2) - 1) /
+           2;
+}
+
+int RobotMonitor::getGridY() {
+    return (int)((((double)getY() / envcontroller::getCellWidth()) * 2) - 1) /
+           2;
 }
 
 } // namespace robosim::robotmonitor

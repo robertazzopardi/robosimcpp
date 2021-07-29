@@ -11,7 +11,6 @@
 #include "EnvController.h"
 #include "ArenaModel.h"
 #include "ArenaModelView.h"
-#include "Casting.h"
 #include "RobotMonitor.h"
 #include "SimulatedRobot.h"
 #include <memory>
@@ -23,25 +22,19 @@
 using robosim::robotmonitor::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
 
-constexpr auto SimRobot = typecasting::cast<SimulatedRobot *>;
-
 namespace robosim::envcontroller {
 
-namespace {
+MonitorVec robots;
 
-robotmonitor::MonitorVec myMonitors;
+namespace {
 
 // Store as void smart pointer type, purely to hide the declarations
 std::shared_ptr<void> view;
 
-template <typename... Args>
-void init(const robotmonitor::MonitorVec &monitors, int robotSpeed,
-          Args... args) {
+template <typename... Args> void init(int robotSpeed, Args... args) {
     arenamodel::makeModel(args...);
 
-    myMonitors = monitors;
-
-    for (const auto &monitor : myMonitors) {
+    for (const auto &monitor : robots) {
         monitor->setRobot(robotSpeed);
     }
 
@@ -50,29 +43,12 @@ void init(const robotmonitor::MonitorVec &monitors, int robotSpeed,
 
 } // namespace
 
-// template <typename... Args>
-// void robosim::EnvController(const MonitorVec &monitors, int robotSpeed,
-//                             Args... args) {
-//     // init(monitors, robotSpeed, args...);
-//     arenamodel::makeModel(args...);
-
-//     myMonitors = monitors;
-
-//     for (const auto &monitor : myMonitors) {
-//         monitor->setRobot(robotSpeed);
-//     }
-
-//     arenamodel::toString();
-// }
-
-void EnvController(const robotmonitor::MonitorVec &monitors,
-                   const char *confFileName, int robotSpeed) {
-    init(monitors, robotSpeed, confFileName);
+void EnvController(const char *confFileName, int robotSpeed) {
+    init(robotSpeed, confFileName);
 }
 
-void EnvController(const robotmonitor::MonitorVec &monitors, int rows, int cols,
-                   int robotSpeed) {
-    init(monitors, robotSpeed, rows, cols);
+void EnvController(int rows, int cols, int robotSpeed) {
+    init(robotSpeed, rows, cols);
 }
 
 void startSimulation() {
@@ -80,16 +56,17 @@ void startSimulation() {
 
     std::vector<SimulatedRobot *> sims;
 
-    for (auto monitor : myMonitors) {
+    for (auto monitor : robots) {
         std::thread(&RobotMonitor::run, monitor, &arenamodelview::running)
             .detach();
-        std::thread(&SimulatedRobot::run, SimRobot(monitor->getRobot()))
+        std::thread(&SimulatedRobot::run,
+                    static_cast<SimulatedRobot *>(monitor->getRobot()))
             .detach();
 
-        sims.push_back(SimRobot(monitor->getRobot()));
+        sims.push_back(static_cast<SimulatedRobot *>(monitor->getRobot()));
     }
 
-    arenamodelview::mainLoop(sims);
+    arenamodelview::mainLoop(sims.data(), sims.size());
 }
 
 float getCellWidth() { return arenamodel::cellWidth; }
@@ -97,5 +74,7 @@ float getCellWidth() { return arenamodel::cellWidth; }
 float getCellRadius() { return arenamodel::cellWidth / 2; };
 
 bool &isRunning() { return arenamodelview::running; }
+
+void updateRunning() { arenamodelview::running = false; }
 
 } // namespace robosim::envcontroller

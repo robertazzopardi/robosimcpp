@@ -12,22 +12,30 @@
 #ifndef __ENV_CONTROLLER_H__
 #define __ENV_CONTROLLER_H__
 
-#include "RobotMonitor.h"
+#include "Colour.h"
+#include <memory>
+#include <stddef.h>
+#include <vector>
 
 namespace robosim {
 
+namespace robotmonitor {
+class RobotMonitor;
+}
+
 namespace envcontroller {
 
-/**
- * Initialise the Environment Controller
- *
- * @param robots vector of robots
- * @param speed robots speed
- * @param args config file path for pre set environments or the width and height
- * for an only bordered arena
- */
-// template <typename... Args>
-// void EnvController(const MonitorVec &, int, Args...);
+using RobotPtr = std::shared_ptr<robotmonitor::RobotMonitor>;
+using MonitorVec = std::vector<RobotPtr>;
+
+extern MonitorVec robots;
+
+template <typename Last>
+static inline void makeRobots(size_t size, colour::Colour colour) {
+    for (size_t i = 0; i < size; i++) {
+        robots.push_back(std::make_shared<Last>(false, colour));
+    }
+}
 
 /**
  * Initialise the Environment Controller from a specified config file
@@ -36,7 +44,7 @@ namespace envcontroller {
  * @param configFileName file path of the environment configuration file
  *
  */
-void EnvController(const robotmonitor::MonitorVec &, const char *, int);
+void EnvController(const char *, int);
 
 /**
  * Create an Environment with given cell width and height, with a border of
@@ -47,7 +55,8 @@ void EnvController(const robotmonitor::MonitorVec &, const char *, int);
  * @param cols number of columns
  *
  */
-void EnvController(const robotmonitor::MonitorVec &, int, int, int);
+// void EnvController(const MonitorVec &, int, int, int);
+void EnvController(int, int, int);
 
 /**
  * Begin the simulation
@@ -59,6 +68,8 @@ float getCellWidth();
 float getCellRadius();
 
 bool &isRunning();
+
+void updateRunning();
 
 } // namespace envcontroller
 

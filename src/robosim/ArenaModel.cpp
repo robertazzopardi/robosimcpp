@@ -30,12 +30,6 @@ namespace {
 constexpr auto SIZE = 800;
 const std::regex reg("\\s*,\\s*");
 
-struct ConfigLine {
-    int row;
-    int col;
-    mygridcell::OccupancyType occ;
-};
-
 ConfigLine tokenize(std::string str) {
     // Get an iterator after filtering through the regex
     std::sregex_token_iterator iter(str.begin(), str.end(), reg, -1);
@@ -60,6 +54,11 @@ ConfigLine tokenize(std::string str) {
     return {std::stoi(tokens[0]), std::stoi(tokens[1]), occ};
 }
 
+static void initGrid(int width, int height, const int dim) {
+    grid.resize(width, Row(height));
+    cellWidth = SIZE / dim;
+}
+
 void parseConfigFile(const char *filePath) {
     std::fstream file;
     file.open(filePath);
@@ -74,26 +73,22 @@ void parseConfigFile(const char *filePath) {
         }
     }
 
-    auto maxRow = std::max_element(lines.begin(), lines.end(),
-                                   [](const auto &a, const auto &b) {
-                                       return a.row < b.row;
-                                   })
-                      ->row +
-                  1;
-    auto maxCol = std::max_element(lines.begin(), lines.end(),
-                                   [](const auto &a, const auto &b) {
-                                       return a.col < b.col;
-                                   })
-                      ->col +
-                  1;
-
-    grid.resize(maxCol, Row(maxRow));
-
-    cellWidth = (float)SIZE / grid[0].size();
-
-    for (auto l : lines) {
-        setOccupancy(l.row, l.col, l.occ);
+    int width = 0, height = 0;
+    for (auto var : lines) {
+        if (var.col > width)
+            width = var.col + 1;
+        if (var.row > height)
+            height = var.row + 1;
     }
+
+    initGrid(width, height, height);
+
+    std::for_each(lines.begin(), lines.end(), setOccupancy);
+}
+
+static constexpr auto isInBounds(const int row, const int col) {
+    return (row >= 0 && row <= static_cast<int>(grid.size())) &&
+           (col >= 0 && col <= static_cast<int>(grid.size()));
 }
 
 } // namespace
@@ -101,43 +96,38 @@ void parseConfigFile(const char *filePath) {
 void makeModel(const char *configFileName) { parseConfigFile(configFileName); }
 
 void makeModel(int width, int height) {
-    grid.resize(width, Row(height));
+    initGrid(width, height, width);
 
-    cellWidth = SIZE / grid.size();
+    for (int i = 0; i < height; i++) {
+        grid[i][0].setCellType(OccupancyType::OBSTACLE);
+        grid[i][height - 1].setCellType(OccupancyType::OBSTACLE);
+    }
 
-    // Add boundaries to empty grid
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
-                grid[x][y].setCellType(OccupancyType::OBSTACLE);
-            }
-        }
+    for (int i = 1; i < width - 1; i++) {
+        grid[0][i].setCellType(OccupancyType::OBSTACLE);
+        grid[width - 1][i].setCellType(OccupancyType::OBSTACLE);
     }
 }
 
-bool setOccupancy(int row, int col, OccupancyType type) {
-    auto size = static_cast<int>(grid.size());
-
+void setOccupancy(ConfigLine line) {
     // Check the bounds of the col and row pos
-    if ((row >= 0 && row <= size) && (col >= 0 && col <= size)) {
+    if (isInBounds(line.row, line.col)) {
         // Only change the occupancy of a cell if it is empty
         // Note, separate methods will be used when modelling the robot
-        auto cell = &grid[col][row];
+        auto cell = &grid[line.col][line.row];
 
         if (cell->isEmpty()) {
-            cell->setCellType(type);
-            return true;
+            cell->setCellType(line.occ);
+            // return true;
         }
     }
 
-    return false;
+    // return false;
 }
 
 OccupancyType getOccupancy(int row, int col) {
-    static auto size = static_cast<int>(grid.size());
-
     // Check the bounds of the col and row pos
-    if ((row >= 0 && row <= size) && (col >= 0 && col <= size)) {
+    if (isInBounds(row, col)) {
         return grid[col][row].getCellType();
     }
 
@@ -145,14 +135,18 @@ OccupancyType getOccupancy(int row, int col) {
 }
 
 void toString() {
-    std::cout << "Arena: " << grid[0].size() << " x " << grid.size() << "\n";
+    std::string arenaModel = " Arena " + std::to_string(grid[0].size()) +
+                             " x " + std::to_string(grid.size()) + "\n";
 
     for (auto var : grid) {
         for (auto c : var) {
-            std::cout << c.toString() << " ";
+            arenaModel += c.toString();
+            arenaModel += " ";
         }
-        std::cout << "\n";
+        arenaModel += "\n";
     }
+
+    std::cout << arenaModel << std::endl;
 }
 
 } // namespace arenamodel

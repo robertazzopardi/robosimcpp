@@ -18,8 +18,14 @@
 
 namespace arenamodel {
 
-using Row = std::vector<mygridcell::Cell>;
+using Row = std::vector<mygridcell::MyGridCell>;
 using Grid = std::vector<Row>;
+
+struct ConfigLine {
+    int row;
+    int col;
+    mygridcell::OccupancyType occ;
+};
 
 extern Grid grid;
 extern float cellWidth;
@@ -27,7 +33,8 @@ extern float cellWidth;
 void makeModel(const char *);
 void makeModel(int, int);
 
-bool setOccupancy(int, int, mygridcell::OccupancyType);
+void setOccupancy(ConfigLine);
+
 mygridcell::OccupancyType getOccupancy(int, int);
 void toString();
 

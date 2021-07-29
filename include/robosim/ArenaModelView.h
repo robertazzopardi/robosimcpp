@@ -12,9 +12,7 @@
 #ifndef __ARENA_MODEL_VIEW_H__
 #define __ARENA_MODEL_VIEW_H__
 
-#include <vector>
-
-namespace robosim {}
+#include <stddef.h>
 
 namespace simulatedrobot {
 class SimulatedRobot;
@@ -26,7 +24,7 @@ extern bool running;
 
 void initModelView();
 
-void mainLoop(const std::vector<simulatedrobot::SimulatedRobot *> &);
+void mainLoop(simulatedrobot::SimulatedRobot **, const size_t);
 
 } // namespace arenamodelview
 

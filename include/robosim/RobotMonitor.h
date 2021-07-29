@@ -15,8 +15,6 @@
 
 #include "Colour.h"
 #include <memory>
-#include <stddef.h>
-#include <vector>
 
 namespace robosim {
 
@@ -31,8 +29,6 @@ class RobotMonitor {
 
     // stored as void, purely to hide simulated robot
     std::shared_ptr<void> robot;
-
-    template <typename fn> void wait(fn);
 
     int getTravelSpeed();
 
@@ -49,6 +45,9 @@ class RobotMonitor {
 
     void *getRobot();
 
+    /**
+     * Update the robots pose
+     */
     void setPose(int, int, int);
 
     /**
@@ -143,21 +142,17 @@ class RobotMonitor {
      * @param running Pointer to whether the simulation is still running
      */
     virtual void run(bool *);
+
+    /*
+     * Get the robots X position on the Grid
+     */
+    int getGridX();
+
+    /*
+     * Get the robots Y position on the Grid
+     */
+    int getGridY();
 };
-
-using RobotPtr = std::shared_ptr<RobotMonitor>;
-using MonitorVec = std::vector<RobotPtr>;
-
-// template <typename T> using MonitorVec = std::vector<std::shared_ptr<T>>;
-
-template <typename T>
-inline MonitorVec getRobots(size_t size, colour::Colour colour) {
-    MonitorVec temp;
-    for (size_t i = 0; i < size; i++) {
-        temp.push_back(std::make_shared<T>(false, colour));
-    }
-    return temp;
-}
 
 } // namespace robotmonitor
 
