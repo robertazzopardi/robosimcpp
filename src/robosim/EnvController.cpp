@@ -16,9 +16,8 @@
 #include <memory>
 #include <thread>
 #include <type_traits>
-#include <vector>
+// #include <vector>
 
-// using robosim::envcontroller::EnvController;
 using robosim::robotmonitor::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
 
@@ -27,9 +26,6 @@ namespace robosim::envcontroller {
 MonitorVec robots;
 
 namespace {
-
-// Store as void smart pointer type, purely to hide the declarations
-std::shared_ptr<void> view;
 
 template <typename... Args> void init(int robotSpeed, Args... args) {
     arenamodel::makeModel(args...);
@@ -73,8 +69,8 @@ float getCellWidth() { return arenamodel::cellWidth; }
 
 float getCellRadius() { return arenamodel::cellWidth / 2; };
 
-bool &isRunning() { return arenamodelview::running; }
+bool isRunning() { return arenamodelview::running; }
 
-void updateRunning() { arenamodelview::running = false; }
+void stop() { arenamodelview::running = false; }
 
 } // namespace robosim::envcontroller

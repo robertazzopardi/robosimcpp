@@ -51,14 +51,17 @@ constexpr auto UPDATE_RATE = UPDATE_DELAY / 1000.0;
 using mygridcell::OccupancyType;
 using simulatedrobot::SimulatedRobot;
 
-void setRandomPosition() {}
+namespace {
+static std::random_device rd;
+static std::mt19937 mt(rd());
+} // namespace
 
 SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
     : attributes{} {
-    std::random_device rd;
-    std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> distX(1, arenamodel::grid[0].size() - 1);
-    std::uniform_int_distribution<int> distY(1, arenamodel::grid.size() - 1);
+    static std::uniform_int_distribution<int> distX(
+        1, arenamodel::grid[0].size() - 1);
+    static std::uniform_int_distribution<int> distY(1, arenamodel::grid.size() -
+                                                           1);
 
     if (randomLocation) {
         int x = 0, y = 0;
@@ -96,12 +99,12 @@ SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
     robotRender.sensor.r = rs;
 
     // robotRender.bodyColour = colour;
-    robotRender.bodyColour = new colour::Colour(colour);
+    robotRender.bodyColour = colour;
 
     update();
 }
 
-SimulatedRobot::~SimulatedRobot() { delete robotRender.bodyColour; }
+SimulatedRobot::~SimulatedRobot() {}
 
 // =======================================================================
 
@@ -295,7 +298,6 @@ void SimulatedRobot::update() {
     // parameters
     auto x = getX();
     auto y = getY();
-    // std::cout << x << " " << y << " " << arenamodel::cellWidth << std::endl;
 
     auto angle = getHeadingInRadians();
 
@@ -322,9 +324,6 @@ void SimulatedRobot::update() {
     robotRender.sensor.y = sy;
 }
 
-// simulatedrobot::RobotRender *SimulatedRobot::getRenderObject() {
-//     return robotRender.get();
-// }
 simulatedrobot::RobotRender SimulatedRobot::getRenderObject() {
     return robotRender;
 }

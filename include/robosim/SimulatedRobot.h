@@ -12,12 +12,9 @@
 #ifndef __SIMULATED_ROBOT_H__
 #define __SIMULATED_ROBOT_H__
 
+#include "Colour.h"
 #include <SDL_Rect.h>
 #include <SDL_stdinc.h>
-
-namespace colour {
-struct Colour;
-}
 
 namespace simulatedrobot {
 
@@ -31,7 +28,7 @@ struct RobotRender {
     Circle body;
     Circle sensor;
     SDL_FPoint radius;
-    colour::Colour *bodyColour;
+    colour::Colour bodyColour;
 };
 
 class SimulatedRobot {

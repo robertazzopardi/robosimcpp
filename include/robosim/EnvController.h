@@ -13,15 +13,16 @@
 #define __ENV_CONTROLLER_H__
 
 #include "Colour.h"
+#include "RobotMonitor.h"
 #include <memory>
 #include <stddef.h>
 #include <vector>
 
 namespace robosim {
 
-namespace robotmonitor {
-class RobotMonitor;
-}
+// namespace robotmonitor {
+// class RobotMonitor;
+// }
 
 namespace envcontroller {
 
@@ -30,10 +31,16 @@ using MonitorVec = std::vector<RobotPtr>;
 
 extern MonitorVec robots;
 
-template <typename Last>
+/**
+ * Creates array of robots of type Robot monitor, with specified colour
+ *
+ * Usage makeRobots<RobotMonitor Type>(1, colour::RED);
+ *
+ */
+template <typename Type = robotmonitor::RobotMonitor>
 static inline void makeRobots(size_t size, colour::Colour colour) {
     for (size_t i = 0; i < size; i++) {
-        robots.push_back(std::make_shared<Last>(false, colour));
+        robots.push_back(std::make_shared<Type>(false, colour));
     }
 }
 
@@ -63,13 +70,25 @@ void EnvController(int, int, int);
  */
 void startSimulation();
 
+/**
+ * Returns the diameter of a grid cell
+ */
 float getCellWidth();
 
+/**
+ * Returns the radius of a grid cell
+ */
 float getCellRadius();
 
-bool &isRunning();
+/**
+ * Returns whether the simulation is running
+ */
+bool isRunning();
 
-void updateRunning();
+/**
+ * Ends the Simulation at anytime
+ */
+void stop();
 
 } // namespace envcontroller
 

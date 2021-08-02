@@ -12,9 +12,11 @@
 #include "ArenaModel.h"
 #include "MyGridCell.h"
 #include <algorithm>
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -30,13 +32,21 @@ namespace {
 constexpr auto SIZE = 800;
 const std::regex reg("\\s*,\\s*");
 
-ConfigLine tokenize(std::string str) {
+ConfigLine tokenizeString(std::string str) {
     // Get an iterator after filtering through the regex
     std::sregex_token_iterator iter(str.begin(), str.end(), reg, -1);
 
     std::sregex_token_iterator end;
 
-    std::vector<std::string> tokens(iter, end);
+    // std::vector<std::string> tokens(iter, end);
+    std::string tokens[3];
+    try {
+        std::copy(iter, end, tokens);
+    } catch (const std::exception &e) {
+        throw std::runtime_error(
+            "Line in config file must be in the format (int), (int), "
+            "(String)\n");
+    }
 
     auto occTypeStr = tokens[2];
     auto occ = OccupancyType::EMPTY;
@@ -51,11 +61,25 @@ ConfigLine tokenize(std::string str) {
         occ = OccupancyType::RED;
     }
 
+    //
+    // size_t last = 0;
+    // size_t next = 0;
+    // while ((next = str.find(", ", last)) != std::string::npos) {
+    //     std::cout << str.substr(last, next - last) << std::endl;
+    //     last = next + 2;
+    // }
+    // std::cout << str.substr(last) << std::endl;
+    //
+
     return {std::stoi(tokens[0]), std::stoi(tokens[1]), occ};
 }
 
 static void initGrid(int width, int height, const int dim) {
     grid.resize(width, Row(height));
+
+    if (dim == 0)
+        throw std::runtime_error("Grid Width / Height can not be 0\n");
+
     cellWidth = SIZE / dim;
 }
 
@@ -69,7 +93,7 @@ void parseConfigFile(const char *filePath) {
     while (getline(file, line)) {
         // Output the text from the file
         if (!line.empty()) {
-            lines.push_back(tokenize(line));
+            lines.push_back(tokenizeString(line));
         }
     }
 
@@ -118,11 +142,8 @@ void setOccupancy(ConfigLine line) {
 
         if (cell->isEmpty()) {
             cell->setCellType(line.occ);
-            // return true;
         }
     }
-
-    // return false;
 }
 
 OccupancyType getOccupancy(int row, int col) {

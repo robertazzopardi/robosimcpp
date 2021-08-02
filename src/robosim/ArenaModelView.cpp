@@ -23,14 +23,15 @@
 #include <SDL_timer.h>
 #include <SDL_video.h>
 #include <iostream>
-#include <memory>
 #include <stdlib.h>
 #include <vector>
 
 namespace robosim {
+
 namespace robotmonitor {
 class RobotMonitor;
 }
+
 } // namespace robosim
 
 static constexpr auto WINDOW_TITLE = "RoboSim";
@@ -54,7 +55,7 @@ struct RenderObjects {
     std::vector<SDL_FRect> blues;
 };
 
-static std::unique_ptr<RenderObjects> renderObjects;
+static RenderObjects renderObjects;
 
 static SDL_Window *window;
 static SDL_Renderer *renderer;
@@ -71,7 +72,7 @@ void buildGui() {
 
     // vertical lines
     for (size_t row = 0; row < arenamodel::grid[0].size(); row += 2) {
-        renderObjects->points.push_back(
+        renderObjects.points.push_back(
             {row * arenamodel::cellWidth, 0, arenamodel::cellWidth, h});
     }
 
@@ -82,23 +83,23 @@ void buildGui() {
         // Check if number is not odd,
         // to mimic the loop stride of the vertical lines
         if (!(row & 1)) {
-            renderObjects->points.push_back(
+            renderObjects.points.push_back(
                 {0, row * arenamodel::cellWidth, w, arenamodel::cellWidth});
         }
 
         for (size_t col = 0; col < arenamodel::grid[row].size(); col++) {
             switch (arenamodel::grid[row][col].getCellType()) {
             case OccupancyType::OBSTACLE:
-                renderObjects->obstacles.push_back(makeFRect(col, row));
+                renderObjects.obstacles.push_back(makeFRect(col, row));
                 break;
             case OccupancyType::RED:
-                renderObjects->reds.push_back(makeFRect(col, row));
+                renderObjects.reds.push_back(makeFRect(col, row));
                 break;
             case OccupancyType::GREEN:
-                renderObjects->greens.push_back(makeFRect(col, row));
+                renderObjects.greens.push_back(makeFRect(col, row));
                 break;
             case OccupancyType::BLUE:
-                renderObjects->blues.push_back(makeFRect(col, row));
+                renderObjects.blues.push_back(makeFRect(col, row));
                 break;
             case OccupancyType::ROBOT:
             case OccupancyType::EMPTY:
@@ -132,7 +133,6 @@ static inline void cleanUp() {
 
 } // namespace
 
-// void mainLoop(const std::vector<simulatedrobot::SimulatedRobot *> &robots) {
 void mainLoop(simulatedrobot::SimulatedRobot **robots,
               const size_t robotCount) {
     using namespace colour;
@@ -161,14 +161,13 @@ void mainLoop(simulatedrobot::SimulatedRobot **robots,
 
         // Draw grid cells
         renderColourDraw(SDL_RenderFillRectsF, OBSTACLE,
-                         renderObjects->obstacles);
-        renderColourDraw(SDL_RenderFillRectsF, RED, renderObjects->reds);
-        renderColourDraw(SDL_RenderFillRectsF, GREEN, renderObjects->greens);
-        renderColourDraw(SDL_RenderFillRectsF, BLUE, renderObjects->blues);
+                         renderObjects.obstacles);
+        renderColourDraw(SDL_RenderFillRectsF, RED, renderObjects.reds);
+        renderColourDraw(SDL_RenderFillRectsF, GREEN, renderObjects.greens);
+        renderColourDraw(SDL_RenderFillRectsF, BLUE, renderObjects.blues);
 
         // Draw Lines
-        renderColourDraw(SDL_RenderDrawRectsF, LINE_BLUE,
-                         renderObjects->points);
+        renderColourDraw(SDL_RenderDrawRectsF, LINE_BLUE, renderObjects.points);
 
         // Draw Robots
         // for (auto robot : robots) {
@@ -177,10 +176,10 @@ void mainLoop(simulatedrobot::SimulatedRobot **robots,
             auto renderObject = robots[i]->getRenderObject();
 
             filledCircleRGBA(renderer, renderObject.body.x, renderObject.body.y,
-                             renderObject.body.r, renderObject.bodyColour->r,
-                             renderObject.bodyColour->g,
-                             renderObject.bodyColour->b,
-                             renderObject.bodyColour->a);
+                             renderObject.body.r, renderObject.bodyColour.r,
+                             renderObject.bodyColour.g,
+                             renderObject.bodyColour.b,
+                             renderObject.bodyColour.a);
 
             SDL_SetRenderDrawColor(renderer, OFF_WHITE.r, OFF_WHITE.g,
                                    OFF_WHITE.b, OFF_WHITE.a);
@@ -220,7 +219,7 @@ void initModelView() {
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    renderObjects = std::make_unique<RenderObjects>();
+    // renderObjects = std::make_unique<RenderObjects>();
 
     buildGui();
 }

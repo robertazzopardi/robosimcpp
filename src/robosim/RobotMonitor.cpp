@@ -40,8 +40,6 @@ template <typename Condition> void wait(Condition condition) {
 
 namespace robosim::robotmonitor {
 
-// MonitorVec robots;
-
 int RobotMonitor::robotCount = 1;
 
 RobotMonitor::RobotMonitor(bool verbose, colour::Colour colour) {
