@@ -6,8 +6,9 @@ project(
   VERSION 0.1.0
   LANGUAGES CXX)
 
-# Don't add this line if you will try_compile with boost.
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# specify the C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Use CTest
 include(CTest)
@@ -45,7 +46,6 @@ target_compile_options(
          -Wextra
          -Oz
          -flto
-         -std=c++17
          -pthread
          -ffunction-sections
          -fdata-sections)

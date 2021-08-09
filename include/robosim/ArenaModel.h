@@ -38,6 +38,6 @@ void setOccupancy(ConfigLine);
 mygridcell::OccupancyType getOccupancy(int, int);
 void toString();
 
-} // namespace arenamodel
+}  // namespace arenamodel
 
-#endif // !__ARENA_MODEL_H__
+#endif  // !__ARENA_MODEL_H__

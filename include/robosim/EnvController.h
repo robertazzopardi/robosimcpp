@@ -90,8 +90,8 @@ bool isRunning();
  */
 void stop();
 
-} // namespace envcontroller
+}  // namespace envcontroller
 
-} // namespace robosim
+}  // namespace robosim
 
-#endif // !__ENV_CONTROLLER_H__
+#endif  // !__ENV_CONTROLLER_H__

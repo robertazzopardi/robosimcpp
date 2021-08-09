@@ -8,6 +8,7 @@
  * @copyright Copyright (c) 2021
  *
  */
+
 #include "ArenaModelView.h"
 #include "ArenaModel.h"
 #include "Colour.h"
@@ -32,13 +33,13 @@ namespace robotmonitor {
 class RobotMonitor;
 }
 
-} // namespace robosim
+}  // namespace robosim
 
 static constexpr auto WINDOW_TITLE = "RoboSim";
 static constexpr auto FRAME_DELAY = 1000 / 60;
 
 using mygridcell::OccupancyType;
-using robosim::robotmonitor::RobotMonitor;
+// using robosim::robotmonitor::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
 
 namespace arenamodelview {
@@ -131,7 +132,7 @@ static inline void cleanUp() {
     SDL_Quit();
 }
 
-} // namespace
+}  // namespace
 
 void mainLoop(simulatedrobot::SimulatedRobot **robots,
               const size_t robotCount) {
@@ -224,4 +225,4 @@ void initModelView() {
     buildGui();
 }
 
-} // namespace arenamodelview
+}  // namespace arenamodelview

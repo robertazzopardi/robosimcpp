@@ -8,6 +8,7 @@
  * @copyright Copyright (c) 2021
  *
  */
+
 #include "SimulatedRobot.h"
 #include "ArenaModel.h"
 #include "ArenaModelView.h"
@@ -54,7 +55,7 @@ using simulatedrobot::SimulatedRobot;
 namespace {
 static std::random_device rd;
 static std::mt19937 mt(rd());
-} // namespace
+}  // namespace
 
 SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
     : attributes{} {
@@ -81,12 +82,12 @@ SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
         auto center = static_cast<int>(3 * arenamodel::cellWidth / 2);
 
         // Position the robot in the center of the (1,1) cell
-        attributes.xLocation = center; // center of (1, 1)
-        attributes.yLocation = center; // center of (1, 1)
+        attributes.xLocation = center;  // center of (1, 1)
+        attributes.yLocation = center;  // center of (1, 1)
     }
 
-    setTravelSpeed(LOWER_TRAVELSPEED); // i->e-> no speed->
-    setHeading(0);                     // i->e-> due north
+    setTravelSpeed(LOWER_TRAVELSPEED);  // i->e-> no speed->
+    setHeading(0);                      // i->e-> due north
 
     attributes.rotationSpeedPerUpdate =
         static_cast<double>(ROTATION_SPEED / 10);
@@ -157,7 +158,7 @@ bool SimulatedRobot::setTravelSpeed(int travelSpeed) {
         return false;
     }
     attributes.travelSpeed =
-        travelSpeed; // This is the speed per second (i.e. 1000 time units)
+        travelSpeed;  // This is the speed per second (i.e. 1000 time units)
     attributes.travelSpeedPerUpdate = travelSpeed * UPDATE_RATE;
 
     return true;
@@ -206,7 +207,7 @@ colour::Colour SimulatedRobot::getCSenseColor() {
     case OccupancyType::ROBOT:
     case OccupancyType::UNKNOWN:
     default:
-        break; // do nothing
+        break;  // do nothing
     }
 
     return colour::WHITE;
@@ -234,7 +235,7 @@ int SimulatedRobot::getDirection() {
 
 int SimulatedRobot::getUSenseRange() {
     auto sensorH = (getDirection() + getHeading()) *
-                   DEGREES_TO_RADIANS; // sensor direction in radians
+                   DEGREES_TO_RADIANS;  // sensor direction in radians
 
     int range;
     for (range = 0; range < US_SENSOR_MAX_RANGE; range += 10) {
@@ -253,11 +254,11 @@ int SimulatedRobot::getUSenseRange() {
 // Obstacle Detection
 
 bool SimulatedRobot::isColliding(int xPos, int yPos, int xDelta, int yDelta) {
-    int xBound; // boundary of the robot in the x axis (either +ve or -ve)
-    int yBound; // boundary of the robot in the y axis (either +ve or -ve)
-    auto collision = false;         // collision flag
-    auto w = arenamodel::cellWidth; // cell width
-    auto h = arenamodel::cellWidth; // cell height
+    int xBound;  // boundary of the robot in the x axis (either +ve or -ve)
+    int yBound;  // boundary of the robot in the y axis (either +ve or -ve)
+    auto collision = false;          // collision flag
+    auto w = arenamodel::cellWidth;  // cell width
+    auto h = arenamodel::cellWidth;  // cell height
 
     auto x = xPos + xDelta;
     auto y = yPos + yDelta;
@@ -265,23 +266,23 @@ bool SimulatedRobot::isColliding(int xPos, int yPos, int xDelta, int yDelta) {
     auto r = (arenamodel::cellWidth / 3) * .9;
 
     if (xDelta >= 0) {
-        xBound = x + r; // check on the right most part of the robot
+        xBound = x + r;  // check on the right most part of the robot
     } else {
-        xBound = x - r; // check on the left most part of the robot
+        xBound = x - r;  // check on the left most part of the robot
     }
 
-    if (yDelta >= 0) {  // check up / up left / left
-        yBound = y + r; // check on the bottom most part of the robot
-    } else {            // check left / down left / down
-        yBound = y - r; // check on the top most part of the robot
+    if (yDelta >= 0) {   // check up / up left / left
+        yBound = y + r;  // check on the bottom most part of the robot
+    } else {             // check left / down left / down
+        yBound = y - r;  // check on the top most part of the robot
     }
 
     if (arenamodel::getOccupancy(xBound / w, yPos / h) ==
-            OccupancyType::OBSTACLE || // Check left/right - x axis only
+            OccupancyType::OBSTACLE ||  // Check left/right - x axis only
         arenamodel::getOccupancy(xBound / w, yBound / h) ==
-            OccupancyType::OBSTACLE || // Check diagonal - x/y axis
+            OccupancyType::OBSTACLE ||  // Check diagonal - x/y axis
         arenamodel::getOccupancy(xPos / w, yBound / h) ==
-            OccupancyType::OBSTACLE // Check up/down - y axis only
+            OccupancyType::OBSTACLE  // Check up/down - y axis only
     ) {
         collision = true;
     }
@@ -330,12 +331,12 @@ simulatedrobot::RobotRender SimulatedRobot::getRenderObject() {
 
 void SimulatedRobot::run() {
     while (arenamodelview::running) {
-        auto deltaDist = 0;     // Represents the distance to travel
-        auto deltaRotation = 0; // Represents the rotation distance to rotate
+        auto deltaDist = 0;      // Represents the distance to travel
+        auto deltaRotation = 0;  // Represents the rotation distance to rotate
         auto travelSegment =
-            attributes.travelSpeedPerUpdate; // We track movement in ints!
+            attributes.travelSpeedPerUpdate;  // We track movement in ints!
         auto rotationSegment =
-            attributes.rotationSpeedPerUpdate; // We track movement in ints!
+            attributes.rotationSpeedPerUpdate;  // We track movement in ints!
 
         // Are we moving?
 

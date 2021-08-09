@@ -8,15 +8,19 @@
  * @copyright Copyright (c) 2021
  *
  */
+
 #include "RobotMonitor.h"
+
+#include <SDL_timer.h>
+
+#include <iostream>
+#include <string>
+#include <type_traits>
+
 #include "ArenaModelView.h"
 #include "Colour.h"
 #include "EnvController.h"
 #include "SimulatedRobot.h"
-#include <SDL_timer.h>
-#include <iostream>
-#include <string>
-#include <type_traits>
 
 namespace {
 
@@ -36,7 +40,7 @@ template <typename Condition> void wait(Condition condition) {
     }
 }
 
-} // namespace
+}  // namespace
 
 namespace robosim::robotmonitor {
 
@@ -63,19 +67,17 @@ bool RobotMonitor::setTravelSpeed(int travelSpeed) {
 
 void RobotMonitor::travel() {
     Sim(robot)->travel();
-    wait([robot = robot] { return !Sim(robot)->isAtDestination(); });
+    wait([&] { return !Sim(robot)->isAtDestination(); });
 }
 
 void RobotMonitor::rotate(int degrees) {
     Sim(robot)->rotate(degrees);
-    wait([robot = robot] { return !Sim(robot)->isAtRotation(); });
+    wait([&] { return !Sim(robot)->isAtRotation(); });
 }
 
 void RobotMonitor::setDirection(int degrees) {
     if (Sim(robot)->setDirection(degrees)) {
-        wait([robot = robot, degrees = degrees] {
-            return Sim(robot)->getDirection() != degrees;
-        });
+        wait([&] { return Sim(robot)->getDirection() != degrees; });
     }
 }
 
@@ -102,14 +104,13 @@ int RobotMonitor::getHeading() { return Sim(robot)->getHeading(); }
  * =========================================================================
  * API Sensor Methods
  * =========================================================================
- * Boolean isBumperPressed();					// True if the
- * robot is adjacent to an obstacle
+ * Boolean isBumperPressed();					// True
+ * if the robot is adjacent to an obstacle
  *
  * int getUSenseRange();						//
  * Return distance to nearest object int getDirection();
  * // Return angle of sensor
- * int setDirection();							// Set
- * the direction of the sensor
+ * int setDirection(); // Set the direction of the sensor
  *
  * Color getCSenseColor();						// Get
  * the current sensed
@@ -142,8 +143,7 @@ int RobotMonitor::getTravelSpeed() { return Sim(robot)->getTravelSpeed(); }
 
 void RobotMonitor::run(bool *running) {
     wait([this, running]() {
-        if (verbose)
-            debug();
+        if (verbose) debug();
         return *running;
     });
 }
@@ -164,13 +164,17 @@ void RobotMonitor::debug() {
 }
 
 int RobotMonitor::getGridX() {
-    return (int)((((double)getX() / envcontroller::getCellWidth()) * 2) - 1) /
-           2;
+    return static_cast<int>(
+        (((static_cast<double>(getX() / envcontroller::getCellWidth())) * 2) -
+         1) /
+        2);
 }
 
 int RobotMonitor::getGridY() {
-    return (int)((((double)getY() / envcontroller::getCellWidth()) * 2) - 1) /
-           2;
+    return static_cast<int>(
+        (((static_cast<double>(getY() / envcontroller::getCellWidth())) * 2) -
+         1) /
+        2);
 }
 
-} // namespace robosim::robotmonitor
+}  // namespace robosim::robotmonitor

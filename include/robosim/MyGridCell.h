@@ -14,15 +14,13 @@
 
 namespace mygridcell {
 
-static const char *occupancySymbols[] = {"#", "_", "*", "r", "b", "g", "?"};
-
 enum OccupancyType { OBSTACLE, EMPTY, ROBOT, RED, BLUE, GREEN, UNKNOWN };
 
 class MyGridCell {
-  private:
+private:
     OccupancyType cellType;
 
-  public:
+public:
     explicit MyGridCell(OccupancyType);
 
     MyGridCell();
@@ -38,6 +36,6 @@ class MyGridCell {
     const char *toString() const;
 };
 
-} // namespace mygridcell
+}  // namespace mygridcell
 
-#endif // !__MY_GRID_CELL_H__
+#endif  // !__MY_GRID_CELL_H__

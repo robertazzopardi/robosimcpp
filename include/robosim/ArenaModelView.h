@@ -26,6 +26,6 @@ void initModelView();
 
 void mainLoop(simulatedrobot::SimulatedRobot **, const size_t);
 
-} // namespace arenamodelview
+}  // namespace arenamodelview
 
-#endif // !__ARENA_MODEL_VIEW_H__
+#endif  // !__ARENA_MODEL_VIEW_H__

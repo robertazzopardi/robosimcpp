@@ -16,7 +16,6 @@
 #include <memory>
 #include <thread>
 #include <type_traits>
-// #include <vector>
 
 using robosim::robotmonitor::RobotMonitor;
 using simulatedrobot::SimulatedRobot;
@@ -37,7 +36,7 @@ template <typename... Args> void init(int robotSpeed, Args... args) {
     arenamodel::toString();
 }
 
-} // namespace
+}  // namespace
 
 void EnvController(const char *confFileName, int robotSpeed) {
     init(robotSpeed, confFileName);
@@ -73,4 +72,4 @@ bool isRunning() { return arenamodelview::running; }
 
 void stop() { arenamodelview::running = false; }
 
-} // namespace robosim::envcontroller
+}  // namespace robosim::envcontroller

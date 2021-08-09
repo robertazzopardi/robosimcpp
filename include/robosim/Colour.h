@@ -43,6 +43,6 @@ constexpr Colour OFF_RED = {255, 76, 76, OPAQUE};
 constexpr Colour LINE_BLUE = {0, 100, 255, OPAQUE};
 constexpr Colour OBSTACLE = {120, 120, 120, OPAQUE};
 
-} // namespace colour
+}  // namespace colour
 
-#endif // !__COMMON_H__
+#endif  // !__COMMON_H__
