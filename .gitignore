@@ -47,6 +47,9 @@ CMakeScripts
 Testing
 Makefile
 cmake_install.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+DartConfiguration.tcl
 install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake

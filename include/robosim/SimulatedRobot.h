@@ -13,8 +13,8 @@
 #define __SIMULATED_ROBOT_H__
 
 #include "Colour.h"
-#include <SDL_Rect.h>
-#include <SDL_stdinc.h>
+#include <SDL2/SDL_rect.h>
+#include <SDL2/SDL_stdinc.h>
 
 namespace simulatedrobot {
 
@@ -35,26 +35,27 @@ class SimulatedRobot {
   private:
     // The instance parameters for the characteristics of our simulated robot
     struct Attributes {
-        int travelSpeed;                  // mm per second.
-        double travelSpeedPerUpdate;      // mm per update.
-        double rotationSpeedPerUpdate;    // Rotation should be
-                                          // ROTATION_SPEED_COEFFICIENT *
-                                          // travelSpeedPerUpdate
-        int currentDistanceToDestination; // in mm
-        int currentAngleToNewHeading;     // rounded to nearest degree in range
-                                          // [-360..360]
-        double headingInRadians; // pose angle from origin in radians, looking
-                                 // along y axis
-        int xLocation; // x location in current coordinate system (bottom left
-                       // is 0,0)
-        int yLocation; // y location in current coordinate system (bottom left
-                       // is 0,0)
-        int heading;   // angle from origin in degrees, looking along y axis
-        bool bumperPressed;     // True if the robot last tried to move into an
-                                // obstacle, false otherwise
-        int sensorDirection;    // Angle (in degrees) from the robot heading
-                                // [-90..+90]
-        int currentSensorAngle; // rounded to nearest degree in range [-90..+90]
+        int travelSpeed;                   // mm per second.
+        double travelSpeedPerUpdate;       // mm per update.
+        double rotationSpeedPerUpdate;     // Rotation should be
+                                           // ROTATION_SPEED_COEFFICIENT *
+                                           // travelSpeedPerUpdate
+        int currentDistanceToDestination;  // in mm
+        int currentAngleToNewHeading;      // rounded to nearest degree in range
+                                           // [-360..360]
+        double headingInRadians;  // pose angle from origin in radians, looking
+                                  // along y axis
+        int xLocation;  // x location in current coordinate system (bottom left
+                        // is 0,0)
+        int yLocation;  // y location in current coordinate system (bottom left
+                        // is 0,0)
+        int heading;    // angle from origin in degrees, looking along y axis
+        bool bumperPressed;      // True if the robot last tried to move into an
+                                 // obstacle, false otherwise
+        int sensorDirection;     // Angle (in degrees) from the robot heading
+                                 // [-90..+90]
+        int currentSensorAngle;  // rounded to nearest degree in range
+                                 // [-90..+90]
     };
 
     Attributes attributes;
@@ -205,6 +206,6 @@ class SimulatedRobot {
     void run();
 };
 
-} // namespace simulatedrobot
+}  // namespace simulatedrobot
 
-#endif // !__SIMULATED_ROBOT_H__
+#endif  // !__SIMULATED_ROBOT_H__

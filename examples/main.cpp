@@ -16,9 +16,9 @@
 // clang++ -Wall -Werror -Wextra -std=c++20 -o main main.cpp
 // -I/usr/local/include/robosim -L/usr/local/lib -lrobosim; ./main
 
+#include "robosim.h"
 #include <iostream>
 #include <random>
-#include <robosim.h>
 
 #define CONFIG_NAME "./defaultConfig.txt"
 

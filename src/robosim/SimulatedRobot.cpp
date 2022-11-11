@@ -14,8 +14,8 @@
 #include "ArenaModelView.h"
 #include "Colour.h"
 #include "MyGridCell.h"
-#include <SDL_Rect.h>
-#include <SDL_timer.h>
+#include <SDL2/SDL_rect.h>
+#include <SDL2/SDL_timer.h>
 #include <algorithm>
 #include <iostream>
 #include <math.h>
@@ -58,7 +58,7 @@ static std::mt19937 mt(rd());
 }  // namespace
 
 SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
-    : attributes{} {
+    : attributes {} {
     static std::uniform_int_distribution<int> distX(
         1, arenamodel::grid[0].size() - 1);
     static std::uniform_int_distribution<int> distY(1, arenamodel::grid.size() -
