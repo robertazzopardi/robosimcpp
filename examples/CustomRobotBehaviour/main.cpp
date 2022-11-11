@@ -20,8 +20,6 @@
 #include <iostream>
 #include <random>
 
-#define CONFIG_NAME "./defaultConfig.txt"
-
 class Robot : public robosim::robotmonitor::RobotMonitor {
   public:
     // Inherit constructor (essentially super the RobotMonitor constructor)
@@ -45,7 +43,7 @@ class Robot : public robosim::robotmonitor::RobotMonitor {
 int main(void) {
     robosim::envcontroller::makeRobots<Robot>(3, colour::OFF_BLACK);
 
-    robosim::envcontroller::EnvController(CONFIG_NAME, 50);
+    robosim::envcontroller::EnvController("./defaultConfig.txt", 50);
     // robosim::envcontroller::EnvController(10, 10, 50);
 
     robosim::envcontroller::startSimulation();
