@@ -16,13 +16,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 include(CTest)
 enable_testing()
 
-# Include what you use detector
-find_program(IWYU NAMES include-what-you-use)
-if(IWYU)
-  message(STATUS "executing include-what-you-use")
-  set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${IWYU})
-endif()
-
 # Define common variables
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
