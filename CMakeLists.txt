@@ -36,7 +36,7 @@ target_compile_options(
          -Wall
          -Wextra
          -O3
-         -flto
+         -flto=auto
          -pthread
          -ffunction-sections
          -fdata-sections)
