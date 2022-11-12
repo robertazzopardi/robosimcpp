@@ -1,41 +1,38 @@
-/**
- * @file MyGridCell.h
- * @author Robert Azzopardi-Yashi (robertazzopardi@icloud.com)
- * @brief One of the cells in the grid environment
- * @version 0.1
- * @date 2021-05-27
- *
- * @copyright Copyright (c) 2021
- *
- */
+#pragma once
 
-#ifndef __MY_GRID_CELL_H__
-#define __MY_GRID_CELL_H__
+namespace mygridcell
+{
 
-namespace mygridcell {
+    enum OccupancyType
+    {
+        OBSTACLE,
+        EMPTY,
+        ROBOT,
+        RED,
+        BLUE,
+        GREEN,
+        UNKNOWN
+    };
 
-enum OccupancyType { OBSTACLE, EMPTY, ROBOT, RED, BLUE, GREEN, UNKNOWN };
+    class MyGridCell
+    {
+    private:
+        OccupancyType cellType;
 
-class MyGridCell {
-private:
-    OccupancyType cellType;
+    public:
+        explicit MyGridCell(OccupancyType);
 
-public:
-    explicit MyGridCell(OccupancyType);
+        MyGridCell();
 
-    MyGridCell();
+        OccupancyType getCellType() const;
 
-    OccupancyType getCellType() const;
+        void setCellType(OccupancyType);
 
-    void setCellType(OccupancyType);
+        void setEmpty();
 
-    void setEmpty();
+        bool isEmpty() const;
 
-    bool isEmpty() const;
+        const char *toString() const;
+    };
 
-    const char *toString() const;
-};
-
-}  // namespace mygridcell
-
-#endif  // !__MY_GRID_CELL_H__
+}

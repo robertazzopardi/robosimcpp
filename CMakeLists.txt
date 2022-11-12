@@ -1,37 +1,33 @@
-# FYI I'm still learning cmake
-
 cmake_minimum_required(VERSION 3.7.0)
 project(
   robosim
   VERSION 0.1.0
   LANGUAGES CXX)
 
-# specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-# set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib)
 
 # Use CTest
 include(CTest)
 enable_testing()
 
-# Define common variables
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
-
 set(INCLUDE_PATH ${CMAKE_SOURCE_DIR}/include/${PROJECT_NAME})
 set(SOURCE_PATH ${CMAKE_SOURCE_DIR}/src/${PROJECT_NAME})
 
 set(HEADER_FILES
-    ${INCLUDE_PATH}/${PROJECT_NAME}.h ${INCLUDE_PATH}/EnvController.h
-    ${INCLUDE_PATH}/RobotMonitor.h ${INCLUDE_PATH}/Colour.h)
+    ${INCLUDE_PATH}/${PROJECT_NAME}.h 
+    ${INCLUDE_PATH}/EnvController.h
+    ${INCLUDE_PATH}/RobotMonitor.h 
+    ${INCLUDE_PATH}/Colour.h)
+
 set(INCLUDE_INSTALL_PATH include/${PROJECT_NAME})
 set(LIB_INSTALL_PATH lib)
 
 # Define the sources of the library
-file(GLOB SOURCES ${SOURCE_PATH}/*.h ${SOURCE_PATH}/*.cpp ${INCLUDE_PATH}/*.h)
+file(GLOB SOURCES
+    ${SOURCE_PATH}/*.h 
+    ${SOURCE_PATH}/*.cpp 
+    ${INCLUDE_PATH}/*.h)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 target_compile_options(
@@ -39,27 +35,19 @@ target_compile_options(
   PUBLIC -Werror
          -Wall
          -Wextra
-         -Oz
+         -O3
          -flto
          -pthread
          -ffunction-sections
          -fdata-sections)
 
-target_include_directories(${PROJECT_NAME} PUBLIC ./)
 target_include_directories(${PROJECT_NAME} PUBLIC src/${PROJECT_NAME}
                                                   include/${PROJECT_NAME})
 
-set(SDL2_LIBRARY $ENV{SDL2_LIBRARY})
-set(SDL2_INCLUDE_DIR $ENV{SDL2_INCLUDE_DIR})
-
 # Link with SDL2
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl2)
-
-# Find SDL2 and SDL2_gfx libraries
 find_package(SDL2 REQUIRED)
 find_package(SDL2_gfx REQUIRED)
-
-# Link SDL2::Main and SDL2::GFX to our project
 target_link_libraries(${PROJECT_NAME} SDL2::Main SDL2::GFX)
 
 # Set up install commands

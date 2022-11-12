@@ -1,14 +1,3 @@
-/**
- * @file RobotMonitor.cpp
- * @author Robert Azzopardi-Yashi (robertazzopardi@icloud.com)
- * @brief
- * @version 0.1
- * @date 2021-07-07
- *
- * @copyright Copyright (c) 2021
- *
- */
-
 #include "RobotMonitor.h"
 
 #include <SDL2/SDL_timer.h>
@@ -22,159 +11,182 @@
 #include "EnvController.h"
 #include "SimulatedRobot.h"
 
-namespace {
+namespace
+{
 
-using simulatedrobot::SimulatedRobot;
+    using simulatedrobot::SimulatedRobot;
 
-template <typename T> inline auto cast_ptr(std::shared_ptr<void> ptr) {
-    return std::static_pointer_cast<T>(ptr);
-}
-
-constexpr auto Sim = cast_ptr<SimulatedRobot>;
-
-constexpr auto DELAY = 100;
-
-template <typename Condition> void wait(Condition condition) {
-    while (arenamodelview::running && condition()) {
-        SDL_Delay(DELAY);
+    template <typename T>
+    inline auto cast_ptr(std::shared_ptr<void> ptr)
+    {
+        return std::static_pointer_cast<T>(ptr);
     }
-}
 
-}  // namespace
+    constexpr auto Sim = cast_ptr<SimulatedRobot>;
 
-namespace robosim::robotmonitor {
+    constexpr auto DELAY = 100;
 
-int RobotMonitor::robotCount = 1;
-
-RobotMonitor::RobotMonitor(bool verbose, colour::Colour colour) {
-    this->verbose = verbose;
-    serialNumber = robotCount++;
-    this->colour = colour;
-}
-
-RobotMonitor::~RobotMonitor() {}
-
-void *RobotMonitor::getRobot() { return robot.get(); }
-
-void RobotMonitor::setRobot(int robotSpeed) {
-    robot = std::make_shared<SimulatedRobot>(true, colour);
-    Sim(robot)->setTravelSpeed(robotSpeed);
-}
-
-bool RobotMonitor::setTravelSpeed(int travelSpeed) {
-    return Sim(robot)->setTravelSpeed(travelSpeed);
-}
-
-void RobotMonitor::travel() {
-    Sim(robot)->travel();
-    wait([&] { return !Sim(robot)->isAtDestination(); });
-}
-
-void RobotMonitor::rotate(int degrees) {
-    Sim(robot)->rotate(degrees);
-    wait([&] { return !Sim(robot)->isAtRotation(); });
-}
-
-void RobotMonitor::setDirection(int degrees) {
-    if (Sim(robot)->setDirection(degrees)) {
-        wait([&] { return Sim(robot)->getDirection() != degrees; });
+    template <typename Condition>
+    void wait(Condition condition)
+    {
+        while (arenamodelview::running && condition())
+        {
+            SDL_Delay(DELAY);
+        }
     }
-}
 
-void RobotMonitor::setPose(int x, int y, int heading) {
-    Sim(robot)->setPose(x, y, heading);
-}
+} // namespace
 
-/**
- * =========================================================================
- * API Pose Methods
- * =========================================================================
- * int getX(); // Get X location on Map int getY();
- * // Get Y location on Map int getHeading()
- * // Get heading angle wrt map
- */
+namespace robosim::robotmonitor
+{
 
-int RobotMonitor::getX() { return Sim(robot)->getX(); }
+    int RobotMonitor::robotCount = 1;
 
-int RobotMonitor::getY() { return Sim(robot)->getY(); }
+    RobotMonitor::RobotMonitor(bool verbose, colour::Colour colour)
+    {
+        this->verbose = verbose;
+        serialNumber = robotCount++;
+        this->colour = colour;
+    }
 
-int RobotMonitor::getHeading() { return Sim(robot)->getHeading(); }
+    RobotMonitor::~RobotMonitor() {}
 
-/**
- * =========================================================================
- * API Sensor Methods
- * =========================================================================
- * Boolean isBumperPressed();					// True
- * if the robot is adjacent to an obstacle
- *
- * int getUSenseRange();						//
- * Return distance to nearest object int getDirection();
- * // Return angle of sensor
- * int setDirection(); // Set the direction of the sensor
- *
- * Color getCSenseColor();						// Get
- * the current sensed
- */
+    void *RobotMonitor::getRobot() { return robot.get(); }
 
-bool RobotMonitor::isBumperPressed() { return Sim(robot)->isBumperPressed(); }
+    void RobotMonitor::setRobot(int robotSpeed)
+    {
+        robot = std::make_shared<SimulatedRobot>(true, colour);
+        Sim(robot)->setTravelSpeed(robotSpeed);
+    }
 
-colour::Colour RobotMonitor::getCSenseColor() {
-    return Sim(robot)->getCSenseColor();
-}
+    bool RobotMonitor::setTravelSpeed(int travelSpeed)
+    {
+        return Sim(robot)->setTravelSpeed(travelSpeed);
+    }
 
-int RobotMonitor::getUSenseRange() { return Sim(robot)->getUSenseRange(); }
+    void RobotMonitor::travel()
+    {
+        Sim(robot)->travel();
+        wait([&]
+             { return !Sim(robot)->isAtDestination(); });
+    }
 
-int RobotMonitor::getDirection() { return Sim(robot)->getDirection(); }
+    void RobotMonitor::rotate(int degrees)
+    {
+        Sim(robot)->rotate(degrees);
+        wait([&]
+             { return !Sim(robot)->isAtRotation(); });
+    }
 
-int RobotMonitor::getTravelSpeed() { return Sim(robot)->getTravelSpeed(); }
+    void RobotMonitor::setDirection(int degrees)
+    {
+        if (Sim(robot)->setDirection(degrees))
+        {
+            wait([&]
+                 { return Sim(robot)->getDirection() != degrees; });
+        }
+    }
 
-// =========================================================================================
-/**
- * Turn on verbose diagnostics to check status of the robot.  Output will appear
- * in stdout.
- * @param verbose is either true (enable diagnostics) or false (disable
- * diagnostics)
- */
-// void RobotMonitor::monitorRobotStatus(bool verbose) {
-//     this->verbose = verbose;
-// }
+    void RobotMonitor::setPose(int x, int y, int heading)
+    {
+        Sim(robot)->setPose(x, y, heading);
+    }
 
-// =========================================================================================
+    /**
+     * =========================================================================
+     * API Pose Methods
+     * =========================================================================
+     * int getX(); // Get X location on Map int getY();
+     * // Get Y location on Map int getHeading()
+     * // Get heading angle wrt map
+     */
 
-void RobotMonitor::run(bool *running) {
-    wait([this, running]() {
+    int RobotMonitor::getX() { return Sim(robot)->getX(); }
+
+    int RobotMonitor::getY() { return Sim(robot)->getY(); }
+
+    int RobotMonitor::getHeading() { return Sim(robot)->getHeading(); }
+
+    /**
+     * =========================================================================
+     * API Sensor Methods
+     * =========================================================================
+     * Boolean isBumperPressed();					// True
+     * if the robot is adjacent to an obstacle
+     *
+     * int getUSenseRange();						//
+     * Return distance to nearest object int getDirection();
+     * // Return angle of sensor
+     * int setDirection(); // Set the direction of the sensor
+     *
+     * Color getCSenseColor();						// Get
+     * the current sensed
+     */
+
+    bool RobotMonitor::isBumperPressed() { return Sim(robot)->isBumperPressed(); }
+
+    colour::Colour RobotMonitor::getCSenseColor()
+    {
+        return Sim(robot)->getCSenseColor();
+    }
+
+    int RobotMonitor::getUSenseRange() { return Sim(robot)->getUSenseRange(); }
+
+    int RobotMonitor::getDirection() { return Sim(robot)->getDirection(); }
+
+    int RobotMonitor::getTravelSpeed() { return Sim(robot)->getTravelSpeed(); }
+
+    // =========================================================================================
+    /**
+     * Turn on verbose diagnostics to check status of the robot.  Output will appear
+     * in stdout.
+     * @param verbose is either true (enable diagnostics) or false (disable
+     * diagnostics)
+     */
+    // void RobotMonitor::monitorRobotStatus(bool verbose) {
+    //     this->verbose = verbose;
+    // }
+
+    // =========================================================================================
+
+    void RobotMonitor::run(bool *running)
+    {
+        wait([this, running]()
+             {
         if (verbose) debug();
-        return *running;
-    });
-}
+        return *running; });
+    }
 
-void RobotMonitor::debug() {
-    auto c = getCSenseColor();
+    void RobotMonitor::debug()
+    {
+        auto c = getCSenseColor();
 
-    std::cout << "Debug Robot " << serialNumber << "\nPose: (" << getX() << ","
-              << getY() << ") with heading " << getHeading()
-              << "\nwith a current travel speed of " << getTravelSpeed()
-              << "mm per second\nBumper is pressed: "
-              << (isBumperPressed() ? "true" : "false") << "\nColour Sensor: ("
-              << std::to_string(c.r) << ", " << std::to_string(c.g) << ", "
-              << std::to_string(c.b) << ")\nRange Sensor: " << getUSenseRange()
-              << " with direction " << getDirection()
-              << "\n==========================================================="
-                 "=======\n";
-}
+        std::cout << "Debug Robot " << serialNumber << "\nPose: (" << getX() << ","
+                  << getY() << ") with heading " << getHeading()
+                  << "\nwith a current travel speed of " << getTravelSpeed()
+                  << "mm per second\nBumper is pressed: "
+                  << (isBumperPressed() ? "true" : "false") << "\nColour Sensor: ("
+                  << std::to_string(c.r) << ", " << std::to_string(c.g) << ", "
+                  << std::to_string(c.b) << ")\nRange Sensor: " << getUSenseRange()
+                  << " with direction " << getDirection()
+                  << "\n==========================================================="
+                     "=======\n";
+    }
 
-int RobotMonitor::getGridX() {
-    return static_cast<int>(
-        (((static_cast<double>(getX() / envcontroller::getCellWidth())) * 2) -
-         1) /
-        2);
-}
+    int RobotMonitor::getGridX()
+    {
+        return static_cast<int>(
+            (((static_cast<double>(getX() / envcontroller::getCellWidth())) * 2) -
+             1) /
+            2);
+    }
 
-int RobotMonitor::getGridY() {
-    return static_cast<int>(
-        (((static_cast<double>(getY() / envcontroller::getCellWidth())) * 2) -
-         1) /
-        2);
-}
+    int RobotMonitor::getGridY()
+    {
+        return static_cast<int>(
+            (((static_cast<double>(getY() / envcontroller::getCellWidth())) * 2) -
+             1) /
+            2);
+    }
 
-}  // namespace robosim::robotmonitor
+} // namespace robosim::robotmonitor

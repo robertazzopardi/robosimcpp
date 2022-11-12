@@ -27,7 +27,7 @@ public:
 int main(int argc, char **argv)
 {
     // obvious error handling here
-    static const char *configFile = argv[1];
+    char *configFile = argv[1];
 
     robosim::envcontroller::makeRobots<Robot>(3, colour::OFF_BLACK);
 
