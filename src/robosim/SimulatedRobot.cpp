@@ -13,7 +13,6 @@
 #include <string>
 #include <vector>
 
-// Java to radians method. Multiply degrees by this
 constexpr auto DEGREES_TO_RADIANS = 0.017453292519943295;
 
 // Physical Characteristics of the Robot
@@ -47,13 +46,12 @@ namespace
     static std::mt19937 mt(rd());
 } // namespace
 
+SimulatedRobot::SimulatedRobot() {}
+
 SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
-    : attributes{}
 {
-    static std::uniform_int_distribution<int> distX(
-        1, arenamodel::grid[0].size() - 1);
-    static std::uniform_int_distribution<int> distY(1, arenamodel::grid.size() -
-                                                           1);
+    static std::uniform_int_distribution<int> distX(1, arenamodel::grid[0].size() - 1);
+    static std::uniform_int_distribution<int> distY(1, arenamodel::grid.size() - 1);
 
     if (randomLocation)
     {
@@ -68,22 +66,22 @@ SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
         arenamodel::setOccupancy({x, y, OccupancyType::ROBOT});
 
         auto r = arenamodel::cellWidth / 2;
-        attributes.xLocation = (x * arenamodel::cellWidth) + r;
-        attributes.yLocation = (y * arenamodel::cellWidth) + r;
+        xLocation = (x * arenamodel::cellWidth) + r;
+        yLocation = (y * arenamodel::cellWidth) + r;
     }
     else
     {
         auto center = static_cast<int>(3 * arenamodel::cellWidth / 2);
 
         // Position the robot in the center of the (1,1) cell
-        attributes.xLocation = center; // center of (1, 1)
-        attributes.yLocation = center; // center of (1, 1)
+        xLocation = center; // center of (1, 1)
+        yLocation = center; // center of (1, 1)
     }
 
     setTravelSpeed(LOWER_TRAVELSPEED); // i->e-> no speed->
     setHeading(0);                     // i->e-> due north
 
-    attributes.rotationSpeedPerUpdate =
+    rotationSpeedPerUpdate =
         static_cast<double>(ROTATION_SPEED / 10);
     // Set any other parameters
 
@@ -103,44 +101,59 @@ SimulatedRobot::~SimulatedRobot() {}
 
 // =======================================================================
 
-auto SimulatedRobot::getRobotBodySize() { return RADIUS_ROBOTBODY; }
+uint32_t SimulatedRobot::getRobotBodySize()
+{
+    return RADIUS_ROBOTBODY;
+}
 
-auto SimulatedRobot::getSensorBodySize() { return RADIUS_SENSORBODY; }
+uint32_t SimulatedRobot::getSensorBodySize()
+{
+    return RADIUS_SENSORBODY;
+}
 
 /* =========================================================================
  * Pose Methods
  * =========================================================================
  */
 
-int SimulatedRobot::getHeading() { return attributes.heading; }
+int SimulatedRobot::getHeading()
+{
+    return heading;
+}
 
 double SimulatedRobot::getHeadingInRadians()
 {
-    return attributes.headingInRadians;
+    return headingInRadians;
 }
 
 double SimulatedRobot::getDirectionInRadians()
 {
-    return attributes.currentSensorAngle * DEGREES_TO_RADIANS;
+    return currentSensorAngle * DEGREES_TO_RADIANS;
 }
 
 void SimulatedRobot::setHeading(int heading)
 {
-    attributes.heading = heading;
+    this->heading = heading;
 
-    attributes.headingInRadians = heading * DEGREES_TO_RADIANS;
+    headingInRadians = heading * DEGREES_TO_RADIANS;
 }
 
-int SimulatedRobot::getX() { return attributes.xLocation; }
+int SimulatedRobot::getX()
+{
+    return xLocation;
+}
 
-int SimulatedRobot::getY() { return attributes.yLocation; }
+int SimulatedRobot::getY()
+{
+    return yLocation;
+}
 
 void SimulatedRobot::setPose(int x, int y, int heading)
 {
     // Note that we don't yet do bounds checking, and thus the robot could be
     // misplaced.
-    attributes.xLocation = x;
-    attributes.yLocation = y;
+    xLocation = x;
+    yLocation = y;
     setHeading(heading);
 }
 
@@ -157,33 +170,35 @@ bool SimulatedRobot::setTravelSpeed(int travelSpeed)
                   << std::to_string(travelSpeed) << ")";
         return false;
     }
-    attributes.travelSpeed =
-        travelSpeed; // This is the speed per second (i.e. 1000 time units)
-    attributes.travelSpeedPerUpdate = travelSpeed * UPDATE_RATE;
+    this->travelSpeed = travelSpeed; // This is the speed per second (i.e. 1000 time units)
+    travelSpeedPerUpdate = travelSpeed * UPDATE_RATE;
 
     return true;
 }
 
-int SimulatedRobot::getTravelSpeed() { return attributes.travelSpeed; }
+int SimulatedRobot::getTravelSpeed()
+{
+    return travelSpeed;
+}
 
 void SimulatedRobot::travel()
 {
-    attributes.currentDistanceToDestination += arenamodel::cellWidth;
+    currentDistanceToDestination += arenamodel::cellWidth;
 }
 
 bool SimulatedRobot::isAtDestination()
 {
-    return attributes.currentDistanceToDestination == 0;
+    return currentDistanceToDestination == 0;
 }
 
 void SimulatedRobot::rotate(int degrees)
 {
-    attributes.currentAngleToNewHeading += degrees;
+    currentAngleToNewHeading += degrees;
 }
 
 bool SimulatedRobot::isAtRotation()
 {
-    return attributes.currentAngleToNewHeading == 0;
+    return currentAngleToNewHeading == 0;
 }
 
 /* =========================================================================
@@ -191,15 +206,18 @@ bool SimulatedRobot::isAtRotation()
  * =========================================================================
  */
 
-bool SimulatedRobot::isBumperPressed() { return attributes.bumperPressed; }
+bool SimulatedRobot::isBumperPressed()
+{
+    return bumperPressed;
+}
 
 colour::Colour SimulatedRobot::getCSenseColor()
 {
-    auto cellWidth = arenamodel::cellWidth;
-    auto colPos = floor(getX() / cellWidth);
-    auto rowPos = floor(getY() / cellWidth);
+    double cellWidth = arenamodel::cellWidth;
+    double colPos = floor(getX() / cellWidth);
+    double rowPos = floor(getY() / cellWidth);
 
-    auto occupancy = arenamodel::getOccupancy(rowPos, colPos);
+    mygridcell::OccupancyType occupancy = arenamodel::getOccupancy(rowPos, colPos);
     switch (occupancy)
     {
     case OccupancyType::RED:
@@ -213,10 +231,8 @@ colour::Colour SimulatedRobot::getCSenseColor()
     case OccupancyType::ROBOT:
     case OccupancyType::UNKNOWN:
     default:
-        break; // do nothing
+        return colour::WHITE;
     }
-
-    return colour::WHITE;
 }
 
 // =====================================================================
@@ -231,7 +247,7 @@ bool SimulatedRobot::setDirection(int degrees)
                   << std::to_string(degrees) << ")";
         return false;
     }
-    attributes.sensorDirection = degrees;
+    sensorDirection = degrees;
 
     return true;
 }
@@ -239,21 +255,19 @@ bool SimulatedRobot::setDirection(int degrees)
 int SimulatedRobot::getDirection()
 {
     // NOTE that this returns the current sensor angle, not the desired angle
-    return attributes.currentSensorAngle;
+    return currentSensorAngle;
 }
 
 int SimulatedRobot::getUSenseRange()
 {
-    auto sensorH = (getDirection() + getHeading()) *
-                   DEGREES_TO_RADIANS; // sensor direction in radians
+    double sensorH = (getDirection() + getHeading()) * DEGREES_TO_RADIANS; // sensor direction in radians
 
     int range;
     for (range = 0; range < US_SENSOR_MAX_RANGE; range += 10)
     {
-        auto xDelta = round(sin(sensorH) * range);
-        auto yDelta = round(cos(sensorH) * range);
-        if (isColliding(attributes.xLocation, attributes.yLocation, xDelta,
-                        yDelta))
+        double xDelta = round(sin(sensorH) * range);
+        double yDelta = round(cos(sensorH) * range);
+        if (isColliding(xLocation, yLocation, xDelta, yDelta))
         {
             break;
         }
@@ -267,16 +281,16 @@ int SimulatedRobot::getUSenseRange()
 
 bool SimulatedRobot::isColliding(int xPos, int yPos, int xDelta, int yDelta)
 {
-    int xBound;                     // boundary of the robot in the x axis (either +ve or -ve)
-    int yBound;                     // boundary of the robot in the y axis (either +ve or -ve)
-    auto collision = false;         // collision flag
-    auto w = arenamodel::cellWidth; // cell width
-    auto h = arenamodel::cellWidth; // cell height
+    int xBound;                      // boundary of the robot in the x axis (either +ve or -ve)
+    int yBound;                      // boundary of the robot in the y axis (either +ve or -ve)
+    bool collision = false;          // collision flag
+    float w = arenamodel::cellWidth; // cell width
+    float h = arenamodel::cellWidth; // cell height
 
-    auto x = xPos + xDelta;
-    auto y = yPos + yDelta;
+    int32_t x = xPos + xDelta;
+    int32_t y = yPos + yDelta;
 
-    auto r = (arenamodel::cellWidth / 3) * .9;
+    double r = (arenamodel::cellWidth / 3) * .9;
 
     if (xDelta >= 0)
     {
@@ -318,15 +332,15 @@ bool SimulatedRobot::isColliding(int xPos, int yPos, int xDelta, int yDelta)
 void SimulatedRobot::update()
 {
     // parameters
-    auto x = getX();
-    auto y = getY();
+    double x = getX();
+    double y = getY();
 
-    auto angle = getHeadingInRadians();
+    double angle = getHeadingInRadians();
 
-    auto scale = robotRender.body.r * .9;
+    double scale = robotRender.body.r * .9;
 
-    auto rx = x + sin(angle) * scale;
-    auto ry = y + cos(angle) * scale;
+    double rx = x + sin(angle) * scale;
+    double ry = y + cos(angle) * scale;
 
     // body
     robotRender.body.x = x;
@@ -336,11 +350,10 @@ void SimulatedRobot::update()
     robotRender.radius.x = rx;
     robotRender.radius.y = ry;
 
-    // sensor
-    auto sangle = getDirectionInRadians() + angle;
+    double sensorAngle = getDirectionInRadians() + angle;
 
-    auto sx = x + sin(sangle) * scale;
-    auto sy = y + cos(sangle) * scale;
+    double sx = x + sin(sensorAngle) * scale;
+    double sy = y + cos(sensorAngle) * scale;
 
     robotRender.sensor.x = sx;
     robotRender.sensor.y = sy;
@@ -355,73 +368,71 @@ void SimulatedRobot::run()
 {
     while (arenamodelview::running)
     {
-        auto deltaDist = 0;     // Represents the distance to travel
-        auto deltaRotation = 0; // Represents the rotation distance to rotate
-        auto travelSegment =
-            attributes.travelSpeedPerUpdate; // We track movement in ints!
-        auto rotationSegment =
-            attributes.rotationSpeedPerUpdate; // We track movement in ints!
+        double deltaDist = 0;                            // Represents the distance to travel
+        double deltaRotation = 0;                        // Represents the rotation distance to rotate
+        double travelSegment = travelSpeedPerUpdate;     // We track movement in ints!
+        double rotationSegment = rotationSpeedPerUpdate; // We track movement in ints!
 
         // Are we moving?
 
-        if (attributes.currentDistanceToDestination != 0)
+        if (currentDistanceToDestination != 0)
         {
-            if (attributes.currentDistanceToDestination < 0)
+            if (currentDistanceToDestination < 0)
             {
                 // Need to invert travelSegment to go in the right direction
                 travelSegment = -travelSegment;
             }
 
-            if (abs(attributes.currentDistanceToDestination) <
+            if (abs(currentDistanceToDestination) <
                 abs(travelSegment))
             {
                 // We have less than the travelSpeed to the destination, so just
                 // move to destination
-                deltaDist = attributes.currentDistanceToDestination;
+                deltaDist = currentDistanceToDestination;
                 // No more destination to go
-                attributes.currentDistanceToDestination = 0;
+                currentDistanceToDestination = 0;
             }
             else
             {
                 deltaDist = travelSegment;
-                attributes.currentDistanceToDestination -= travelSegment;
+                currentDistanceToDestination -= travelSegment;
             }
 
             // Need to check if we are about to run into an obstacle
-            auto xDelta = sin(attributes.headingInRadians) * deltaDist;
-            auto yDelta = cos(attributes.headingInRadians) * deltaDist;
+            double xDelta = sin(headingInRadians) * deltaDist;
+            double yDelta = cos(headingInRadians) * deltaDist;
 
             // Check for collisions
-            attributes.bumperPressed = isColliding(
-                attributes.xLocation, attributes.yLocation, xDelta, yDelta);
-            if (!attributes.bumperPressed)
+            bumperPressed = isColliding(
+                xLocation, yLocation, xDelta, yDelta);
+            if (!bumperPressed)
             {
                 // Update x & y position
-                attributes.xLocation += xDelta;
-                attributes.yLocation += yDelta;
+                xLocation += xDelta;
+                yLocation += yDelta;
             }
         }
 
         // =======================================================================
         // Are we also rotating?
-        if (attributes.currentAngleToNewHeading != 0)
+        if (currentAngleToNewHeading != 0)
         {
-            if (attributes.currentAngleToNewHeading < rotationSegment)
+            if (currentAngleToNewHeading < rotationSegment)
             {
                 // Need to invert travelSegment to go in the right direction
                 rotationSegment = -rotationSegment;
             }
 
-            if (abs(attributes.currentAngleToNewHeading) <
+            if (abs(currentAngleToNewHeading) <
                 abs(rotationSegment))
             {
-                deltaRotation = attributes.currentAngleToNewHeading;
-                attributes.currentAngleToNewHeading = 0;
+                deltaRotation = currentAngleToNewHeading;
+                currentAngleToNewHeading = 0;
             }
             else
             {
                 deltaRotation = rotationSegment;
-                attributes.currentAngleToNewHeading -= rotationSegment;
+                currentAngleToNewHeading -= rotationSegment;
             }
             // Update Rotation
             setHeading(getHeading() + deltaRotation);
@@ -429,31 +440,31 @@ void SimulatedRobot::run()
 
         // =======================================================================
         // Is the sensor in the correct place
-        if (attributes.currentSensorAngle != attributes.sensorDirection)
+        if (currentSensorAngle != sensorDirection)
         {
             // we need to move it
-            if (attributes.sensorDirection > attributes.currentSensorAngle)
+            if (sensorDirection > currentSensorAngle)
             {
-                if (attributes.sensorDirection - attributes.currentSensorAngle >
+                if (sensorDirection - currentSensorAngle >
                     rotationSegment)
                 {
-                    attributes.currentSensorAngle += rotationSegment;
+                    currentSensorAngle += rotationSegment;
                 }
                 else
                 {
-                    attributes.currentSensorAngle = attributes.sensorDirection;
+                    currentSensorAngle = sensorDirection;
                 }
             }
             else
             {
-                if (attributes.currentSensorAngle - attributes.sensorDirection >
+                if (currentSensorAngle - sensorDirection >
                     rotationSegment)
                 {
-                    attributes.currentSensorAngle -= rotationSegment;
+                    currentSensorAngle -= rotationSegment;
                 }
                 else
                 {
-                    attributes.currentSensorAngle = attributes.sensorDirection;
+                    currentSensorAngle = sensorDirection;
                 }
             }
         }

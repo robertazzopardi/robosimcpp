@@ -47,28 +47,43 @@ namespace robosim::envcontroller
     {
         arenamodelview::initModelView();
 
-        std::vector<SimulatedRobot *> sims;
+        std::vector<SimulatedRobot> simulatedRobots;
+        std::vector<std::thread> threads;
 
         for (auto monitor : robots)
         {
-            std::thread(&RobotMonitor::run, monitor, &arenamodelview::running)
-                .detach();
-            std::thread(&SimulatedRobot::run,
-                        static_cast<SimulatedRobot *>(monitor->getRobot()))
-                .detach();
+            threads.push_back(std::thread(&RobotMonitor::run, monitor, &arenamodelview::running));
+            threads.push_back(std::thread(&SimulatedRobot::run, monitor->getRobot()));
 
-            sims.push_back(static_cast<SimulatedRobot *>(monitor->getRobot()));
+            simulatedRobots.push_back(monitor->getRobot());
         }
 
-        arenamodelview::mainLoop(sims.data(), sims.size());
+        arenamodelview::mainLoop(simulatedRobots);
+
+        for (size_t i = 0; i < threads.size(); i++)
+        {
+            threads[i].join();
+        }
     }
 
-    float getCellWidth() { return arenamodel::cellWidth; }
+    float getCellWidth()
+    {
+        return arenamodel::cellWidth;
+    }
 
-    float getCellRadius() { return arenamodel::cellWidth / 2; };
+    float getCellRadius()
+    {
+        return arenamodel::cellWidth / 2;
+    };
 
-    bool isRunning() { return arenamodelview::running; }
+    bool isRunning()
+    {
+        return arenamodelview::running;
+    }
 
-    void stop() { arenamodelview::running = false; }
+    void stop()
+    {
+        arenamodelview::running = false;
+    }
 
 } // namespace robosim::envcontroller

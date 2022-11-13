@@ -1,149 +1,144 @@
 #pragma once
 
-#include "Colour.h"
 #include <memory>
 
-namespace robosim
+#include "Colour.h"
+#include "SimulatedRobot.h"
+
+namespace robosim::robotmonitor
 {
 
-  namespace robotmonitor
-  {
+class RobotMonitor
+{
+  private:
+    int serialNumber;
+    static int robotCount;
 
-    class RobotMonitor
-    {
-    protected:
-      int serialNumber;
+    simulatedrobot::SimulatedRobot robot;
 
-    private:
-      static int robotCount;
+    int getTravelSpeed();
 
-      // stored as void, purely to hide simulated robot
-      std::shared_ptr<void> robot;
+    bool verbose;
 
-      int getTravelSpeed();
+    colour::Colour colour;
 
-      bool verbose;
+  public:
+    RobotMonitor();
+    RobotMonitor(bool, colour::Colour);
 
-      colour::Colour colour;
+    virtual ~RobotMonitor();
 
-    public:
-      RobotMonitor(bool, colour::Colour);
+    void setRobot(int);
 
-      virtual ~RobotMonitor();
+    simulatedrobot::SimulatedRobot getRobot();
 
-      void setRobot(int);
+    /**
+     * Update the robots pose
+     */
+    void setPose(int, int, int);
 
-      void *getRobot();
+    /**
+     * Sets the robots travel speed
+     */
+    bool setTravelSpeed(int);
 
-      /**
-       * Update the robots pose
-       */
-      void setPose(int, int, int);
+    /**
+     * The robot travels one cell forward in this current heading
+     */
+    void travel();
 
-      /**
-       * Sets the robots travel speed
-       */
-      bool setTravelSpeed(int);
+    /**
+     * Rotates the robot by the specified degrees (in degrees)
+     *
+     * @param degrees the amount to rotate by
+     */
+    void rotate(int);
 
-      /**
-       * The robot travels one cell forward in this current heading
-       */
-      void travel();
+    /**
+     * Obtains the current position of the robot in the x axis (in mm)
+     * @return the x location on the map
+     */
+    int getX();
 
-      /**
-       * Rotates the robot by the specified degrees (in degrees)
-       *
-       * @param degrees the amount to rotate by
-       */
-      void rotate(int);
+    /**
+     * Obtains the current position of the robot in the y axis (in mm)
+     * @return the y location on the map
+     */
+    int getY();
 
-      /**
-       * Obtains the current position of the robot in the x axis (in mm)
-       * @return the x location on the map
-       */
-      int getX();
+    /**
+     * Obtains the current position of the robot
+     * The heading is in the nearest degree, such that
+     * 0 is along the y axis, and increasing
+     * values rotate in a clockwise direction
+     * @return the heading
+     */
+    int getHeading();
 
-      /**
-       * Obtains the current position of the robot in the y axis (in mm)
-       * @return the y location on the map
-       */
-      int getY();
+    /**
+     * Check if the bumper is pressed.  This will be true if the robot
+     * tried to move into an obstacle.  If the robot moves away from an
+     * obstacle successfully, then the value is false.
+     * @return bumper status
+     */
+    bool isBumperPressed();
 
-      /**
-       * Obtains the current position of the robot
-       * The heading is in the nearest degree, such that
-       * 0 is along the y axis, and increasing
-       * values rotate in a clockwise direction
-       * @return the heading
-       */
-      int getHeading();
+    /**
+     * Check the  of the cell beneath the center of the robot.
+     * @return a Color object
+     */
+    colour::Colour getCSenseColor();
 
-      /**
-       * Check if the bumper is pressed.  This will be true if the robot
-       * tried to move into an obstacle.  If the robot moves away from an
-       * obstacle successfully, then the value is false.
-       * @return bumper status
-       */
-      bool isBumperPressed();
+    /**
+     * Get the range of the nearest object in the direction of the sensor.
+     * This senses an object that would result in a collision with the robot
+     * if it were to move in the direction of the sensor (i.e. the cone of
+     * the sensor is parallel with a width being that of the robot
+     * diameter). The maximum range is 2550mm.
+     * @return range to nearest object in the direction of the sensor in mm
+     */
+    int getUSenseRange();
 
-      /**
-       * Check the  of the cell beneath the center of the robot.
-       * @return a Color object
-       */
-      colour::Colour getCSenseColor();
+    /**
+     * Set the desired direction of the sensor, as an offset of the heading
+     * of the robot.  Valid ranges are -90 (i.e. looking left) to 90 (i.e.
+     * looking right). Any angle between these ranges can be selected, and
+     * the method will block until the sensor is pointing in this direction.
+     * @param angle (in degrees) from the heading of the robot
+     */
+    void setDirection(int);
 
-      /**
-       * Get the range of the nearest object in the direction of the sensor.
-       * This senses an object that would result in a collision with the robot
-       * if it were to move in the direction of the sensor (i.e. the cone of the
-       * sensor is parallel with a width being that of the robot diameter).
-       * The maximum range is 2550mm.
-       * @return range to nearest object in the direction of the sensor in mm
-       */
-      int getUSenseRange();
+    /**
+     * Get the current direction (as an offset to the robot heading) of
+     * the sensor.
+     * @return the angle of the sensor, where 0 is in the direction of the
+     * robot; and any value in the range -90 (i.e. looking left) to 90 (i.e.
+     * looking right)
+     */
+    int getDirection();
 
-      /**
-       * Set the desired direction of the sensor, as an offset of the heading
-       * of the robot.  Valid ranges are -90 (i.e. looking left) to 90 (i.e.
-       * looking right). Any angle between these ranges can be selected, and the
-       * method will block until the sensor is pointing in this direction.
-       * @param angle (in degrees) from the heading of the robot
-       */
-      void setDirection(int);
+    /**
+     * Logs the robots current observations and properties
+     */
+    void debug();
 
-      /**
-       * Get the current direction (as an offset to the robot heading) of
-       * the sensor.
-       * @return the angle of the sensor, where 0 is in the direction of the
-       * robot; and any value in the range -90 (i.e. looking left) to 90 (i.e.
-       * looking right)
-       */
-      int getDirection();
+    /**
+     * If this method is not overridden then the monitor writes various bits
+     * of robot state to the screen, then sleeps.
+     *
+     * @param running Pointer to whether the simulation is still running
+     */
+    virtual void run(bool *);
 
-      /**
-       * Logs the robots current observations and properties
-       */
-      void debug();
+    /*
+     * Get the robots X position on the Grid
+     */
+    int getGridX();
 
-      /**
-       * If this method is not overridden then the monitor writes various bits of
-       * robot state to the screen, then sleeps.
-       *
-       * @param running Pointer to whether the simulation is still running
-       */
-      virtual void run(bool *);
+    /*
+     * Get the robots Y position on the Grid
+     */
+    int getGridY();
+};
 
-      /*
-       * Get the robots X position on the Grid
-       */
-      int getGridX();
-
-      /*
-       * Get the robots Y position on the Grid
-       */
-      int getGridY();
-    };
-
-  }
-
-}
+} // namespace robosim::robotmonitor

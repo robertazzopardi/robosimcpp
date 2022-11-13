@@ -173,14 +173,13 @@ namespace arenamodel
 
     void toString()
     {
-        std::string arenaModel = " Arena " + std::to_string(grid[0].size()) +
-                                 " x " + std::to_string(grid.size()) + "\n";
+        std::string arenaModel = " Arena " + std::to_string(grid[0].size()) + " x " + std::to_string(grid.size()) + "\n";
 
-        for (auto var : grid)
+        for (auto row : grid)
         {
-            for (auto c : var)
+            for (auto col : row)
             {
-                arenaModel += c.toString();
+                arenaModel += col.toString();
                 arenaModel += " ";
             }
             arenaModel += "\n";

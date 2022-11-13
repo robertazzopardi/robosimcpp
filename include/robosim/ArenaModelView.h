@@ -1,11 +1,8 @@
 #pragma once
 
 #include <stddef.h>
-
-namespace simulatedrobot
-{
-    class SimulatedRobot;
-}
+#include <vector>
+#include "SimulatedRobot.h"
 
 namespace arenamodelview
 {
@@ -14,6 +11,6 @@ namespace arenamodelview
 
     void initModelView();
 
-    void mainLoop(simulatedrobot::SimulatedRobot **, const size_t);
+    void mainLoop(const std::vector<simulatedrobot::SimulatedRobot> &);
 
 }

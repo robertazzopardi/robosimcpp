@@ -1,11 +1,10 @@
-#include "RobotMonitor.h"
-
 #include <SDL2/SDL_timer.h>
 
 #include <iostream>
 #include <string>
 #include <type_traits>
 
+#include "RobotMonitor.h"
 #include "ArenaModelView.h"
 #include "Colour.h"
 #include "EnvController.h"
@@ -13,16 +12,7 @@
 
 namespace
 {
-
     using simulatedrobot::SimulatedRobot;
-
-    template <typename T>
-    inline auto cast_ptr(std::shared_ptr<void> ptr)
-    {
-        return std::static_pointer_cast<T>(ptr);
-    }
-
-    constexpr auto Sim = cast_ptr<SimulatedRobot>;
 
     constexpr auto DELAY = 100;
 
@@ -35,12 +25,14 @@ namespace
         }
     }
 
-} // namespace
+}
 
 namespace robosim::robotmonitor
 {
 
     int RobotMonitor::robotCount = 1;
+
+    RobotMonitor::RobotMonitor() {}
 
     RobotMonitor::RobotMonitor(bool verbose, colour::Colour colour)
     {
@@ -49,47 +41,54 @@ namespace robosim::robotmonitor
         this->colour = colour;
     }
 
-    RobotMonitor::~RobotMonitor() {}
+    RobotMonitor::~RobotMonitor()
+    {
+    }
 
-    void *RobotMonitor::getRobot() { return robot.get(); }
+    SimulatedRobot RobotMonitor::getRobot()
+    {
+        return robot;
+    }
 
     void RobotMonitor::setRobot(int robotSpeed)
     {
-        robot = std::make_shared<SimulatedRobot>(true, colour);
-        Sim(robot)->setTravelSpeed(robotSpeed);
+        // robot = std::make_shared<SimulatedRobot>(true, colour);
+        robot = SimulatedRobot(true, colour);
+        // robot.setTravelSpeed(robotSpeed);
+        robot.setTravelSpeed(robotSpeed);
     }
 
     bool RobotMonitor::setTravelSpeed(int travelSpeed)
     {
-        return Sim(robot)->setTravelSpeed(travelSpeed);
+        return robot.setTravelSpeed(travelSpeed);
     }
 
     void RobotMonitor::travel()
     {
-        Sim(robot)->travel();
+        robot.travel();
         wait([&]
-             { return !Sim(robot)->isAtDestination(); });
+             { return !robot.isAtDestination(); });
     }
 
     void RobotMonitor::rotate(int degrees)
     {
-        Sim(robot)->rotate(degrees);
+        robot.rotate(degrees);
         wait([&]
-             { return !Sim(robot)->isAtRotation(); });
+             { return !robot.isAtRotation(); });
     }
 
     void RobotMonitor::setDirection(int degrees)
     {
-        if (Sim(robot)->setDirection(degrees))
+        if (robot.setDirection(degrees))
         {
             wait([&]
-                 { return Sim(robot)->getDirection() != degrees; });
+                 { return robot.getDirection() != degrees; });
         }
     }
 
     void RobotMonitor::setPose(int x, int y, int heading)
     {
-        Sim(robot)->setPose(x, y, heading);
+        robot.setPose(x, y, heading);
     }
 
     /**
@@ -101,11 +100,20 @@ namespace robosim::robotmonitor
      * // Get heading angle wrt map
      */
 
-    int RobotMonitor::getX() { return Sim(robot)->getX(); }
+    int RobotMonitor::getX()
+    {
+        return robot.getX();
+    }
 
-    int RobotMonitor::getY() { return Sim(robot)->getY(); }
+    int RobotMonitor::getY()
+    {
+        return robot.getY();
+    }
 
-    int RobotMonitor::getHeading() { return Sim(robot)->getHeading(); }
+    int RobotMonitor::getHeading()
+    {
+        return robot.getHeading();
+    }
 
     /**
      * =========================================================================
@@ -123,18 +131,30 @@ namespace robosim::robotmonitor
      * the current sensed
      */
 
-    bool RobotMonitor::isBumperPressed() { return Sim(robot)->isBumperPressed(); }
+    bool RobotMonitor::isBumperPressed()
+    {
+        return robot.isBumperPressed();
+    }
 
     colour::Colour RobotMonitor::getCSenseColor()
     {
-        return Sim(robot)->getCSenseColor();
+        return robot.getCSenseColor();
     }
 
-    int RobotMonitor::getUSenseRange() { return Sim(robot)->getUSenseRange(); }
+    int RobotMonitor::getUSenseRange()
+    {
+        return robot.getUSenseRange();
+    }
 
-    int RobotMonitor::getDirection() { return Sim(robot)->getDirection(); }
+    int RobotMonitor::getDirection()
+    {
+        return robot.getDirection();
+    }
 
-    int RobotMonitor::getTravelSpeed() { return Sim(robot)->getTravelSpeed(); }
+    int RobotMonitor::getTravelSpeed()
+    {
+        return robot.getTravelSpeed();
+    }
 
     // =========================================================================================
     /**

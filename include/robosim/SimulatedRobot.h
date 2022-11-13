@@ -25,33 +25,27 @@ namespace simulatedrobot
   class SimulatedRobot
   {
   private:
-    // The instance parameters for the characteristics of our simulated robot
-    struct Attributes
-    {
-      int travelSpeed;                  // mm per second.
-      double travelSpeedPerUpdate;      // mm per update.
-      double rotationSpeedPerUpdate;    // Rotation should be
-                                        // ROTATION_SPEED_COEFFICIENT *
-                                        // travelSpeedPerUpdate
-      int currentDistanceToDestination; // in mm
-      int currentAngleToNewHeading;     // rounded to nearest degree in range
-                                        // [-360..360]
-      double headingInRadians;          // pose angle from origin in radians, looking
-                                        // along y axis
-      int xLocation;                    // x location in current coordinate system (bottom left
-                                        // is 0,0)
-      int yLocation;                    // y location in current coordinate system (bottom left
-                                        // is 0,0)
-      int heading;                      // angle from origin in degrees, looking along y axis
-      bool bumperPressed;               // True if the robot last tried to move into an
-                                        // obstacle, false otherwise
-      int sensorDirection;              // Angle (in degrees) from the robot heading
-                                        // [-90..+90]
-      int currentSensorAngle;           // rounded to nearest degree in range
-                                        // [-90..+90]
-    };
-
-    Attributes attributes;
+    int travelSpeed = 0;                  // mm per second.
+    double travelSpeedPerUpdate = 0;      // mm per update.
+    double rotationSpeedPerUpdate = 0;    // Rotation should be
+                                          // ROTATION_SPEED_COEFFICIENT *
+                                          // travelSpeedPerUpdate
+    int currentDistanceToDestination = 0; // in mm
+    int currentAngleToNewHeading = 0;     // rounded to nearest degree in range
+                                          // [-360..360]
+    double headingInRadians = 0;          // pose angle from origin in radians, looking
+                                          // along y axis
+    int xLocation = 0;                    // x location in current coordinate system (bottom left
+                                          // is 0,0)
+    int yLocation = 0;                    // y location in current coordinate system (bottom left
+                                          // is 0,0)
+    int heading = 0;                      // angle from origin in degrees, looking along y axis
+    bool bumperPressed = 0;               // True if the robot last tried to move into an
+                                          // obstacle, false otherwise
+    int sensorDirection = 0;              // Angle (in degrees) from the robot heading
+                                          // [-90..+90]
+    int currentSensorAngle = 0;           // rounded to nearest degree in range
+                                          // [-90..+90]
 
     bool isColliding(int, int, int, int);
 
@@ -70,11 +64,12 @@ namespace simulatedrobot
     // bool shouldStop = false;
 
     // SimulatedRobot(arenamodel::ArenaModel *);
+    SimulatedRobot();
     SimulatedRobot(bool, colour::Colour);
     ~SimulatedRobot();
 
-    auto getRobotBodySize();
-    auto getSensorBodySize();
+    uint32_t getRobotBodySize();
+    uint32_t getSensorBodySize();
 
     /**
      * Pose: obtains the current position of the robot
