@@ -3,8 +3,8 @@
 #include "ArenaModelView.h"
 #include "Colour.h"
 #include "MyGridCell.h"
-#include <SDL2/SDL_rect.h>
-#include <SDL2/SDL_timer.h>
+#include <SDL_rect.h>
+#include <SDL_timer.h>
 #include <algorithm>
 #include <iostream>
 #include <math.h>
@@ -42,11 +42,13 @@ using simulatedrobot::SimulatedRobot;
 
 namespace
 {
-    static std::random_device rd;
-    static std::mt19937 mt(rd());
+static std::random_device rd;
+static std::mt19937 mt(rd());
 } // namespace
 
-SimulatedRobot::SimulatedRobot() {}
+SimulatedRobot::SimulatedRobot()
+{
+}
 
 SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
 {
@@ -81,8 +83,7 @@ SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
     setTravelSpeed(LOWER_TRAVELSPEED); // i->e-> no speed->
     setHeading(0);                     // i->e-> due north
 
-    rotationSpeedPerUpdate =
-        static_cast<double>(ROTATION_SPEED / 10);
+    rotationSpeedPerUpdate = static_cast<double>(ROTATION_SPEED / 10);
     // Set any other parameters
 
     // Create the robots render object
@@ -97,7 +98,9 @@ SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
     update();
 }
 
-SimulatedRobot::~SimulatedRobot() {}
+SimulatedRobot::~SimulatedRobot()
+{
+}
 
 // =======================================================================
 
@@ -166,8 +169,7 @@ bool SimulatedRobot::setTravelSpeed(int travelSpeed)
 {
     if (travelSpeed < LOWER_TRAVELSPEED || travelSpeed > UPPER_TRAVELSPEED)
     {
-        std::cerr << "Invalid Travel Speed - setTravelSpeed("
-                  << std::to_string(travelSpeed) << ")";
+        std::cerr << "Invalid Travel Speed - setTravelSpeed(" << std::to_string(travelSpeed) << ")";
         return false;
     }
     this->travelSpeed = travelSpeed; // This is the speed per second (i.e. 1000 time units)
@@ -243,8 +245,7 @@ bool SimulatedRobot::setDirection(int degrees)
 {
     if (degrees < LEFT_SENSORANGLE || degrees > RIGHT_SENSORANGLE)
     {
-        std::cerr << "Invalid Sensor Angle - setDirection("
-                  << std::to_string(degrees) << ")";
+        std::cerr << "Invalid Sensor Angle - setDirection(" << std::to_string(degrees) << ")";
         return false;
     }
     sensorDirection = degrees;
@@ -310,12 +311,9 @@ bool SimulatedRobot::isColliding(int xPos, int yPos, int xDelta, int yDelta)
         yBound = y - r; // check on the top most part of the robot
     }
 
-    if (arenamodel::getOccupancy(xBound / w, yPos / h) ==
-            OccupancyType::OBSTACLE || // Check left/right - x axis only
-        arenamodel::getOccupancy(xBound / w, yBound / h) ==
-            OccupancyType::OBSTACLE || // Check diagonal - x/y axis
-        arenamodel::getOccupancy(xPos / w, yBound / h) ==
-            OccupancyType::OBSTACLE // Check up/down - y axis only
+    if (arenamodel::getOccupancy(xBound / w, yPos / h) == OccupancyType::OBSTACLE ||   // Check left/right - x axis only
+        arenamodel::getOccupancy(xBound / w, yBound / h) == OccupancyType::OBSTACLE || // Check diagonal - x/y axis
+        arenamodel::getOccupancy(xPos / w, yBound / h) == OccupancyType::OBSTACLE      // Check up/down - y axis only
     )
     {
         collision = true;
@@ -383,8 +381,7 @@ void SimulatedRobot::run()
                 travelSegment = -travelSegment;
             }
 
-            if (abs(currentDistanceToDestination) <
-                abs(travelSegment))
+            if (abs(currentDistanceToDestination) < abs(travelSegment))
             {
                 // We have less than the travelSpeed to the destination, so just
                 // move to destination
@@ -403,8 +400,7 @@ void SimulatedRobot::run()
             double yDelta = cos(headingInRadians) * deltaDist;
 
             // Check for collisions
-            bumperPressed = isColliding(
-                xLocation, yLocation, xDelta, yDelta);
+            bumperPressed = isColliding(xLocation, yLocation, xDelta, yDelta);
             if (!bumperPressed)
             {
                 // Update x & y position
@@ -423,8 +419,7 @@ void SimulatedRobot::run()
                 rotationSegment = -rotationSegment;
             }
 
-            if (abs(currentAngleToNewHeading) <
-                abs(rotationSegment))
+            if (abs(currentAngleToNewHeading) < abs(rotationSegment))
             {
                 deltaRotation = currentAngleToNewHeading;
                 currentAngleToNewHeading = 0;
@@ -445,8 +440,7 @@ void SimulatedRobot::run()
             // we need to move it
             if (sensorDirection > currentSensorAngle)
             {
-                if (sensorDirection - currentSensorAngle >
-                    rotationSegment)
+                if (sensorDirection - currentSensorAngle > rotationSegment)
                 {
                     currentSensorAngle += rotationSegment;
                 }
@@ -457,8 +451,7 @@ void SimulatedRobot::run()
             }
             else
             {
-                if (currentSensorAngle - sensorDirection >
-                    rotationSegment)
+                if (currentSensorAngle - sensorDirection > rotationSegment)
                 {
                     currentSensorAngle -= rotationSegment;
                 }

@@ -6,25 +6,25 @@
 namespace arenamodel
 {
 
-    using Row = std::vector<mygridcell::MyGridCell>;
-    using Grid = std::vector<Row>;
+using Row = std::vector<mygridcell::MyGridCell>;
+using Grid = std::vector<Row>;
 
-    struct ConfigLine
-    {
-        int row;
-        int col;
-        mygridcell::OccupancyType occ;
-    };
+struct ConfigLine
+{
+    int row;
+    int col;
+    mygridcell::OccupancyType occ;
+};
 
-    extern Grid grid;
-    extern float cellWidth;
+extern Grid grid;
+extern float cellWidth;
 
-    void makeModel(const char *);
-    void makeModel(int, int);
+void makeModel(const char *);
+void makeModel(int, int);
 
-    void setOccupancy(ConfigLine);
+void setOccupancy(ConfigLine);
 
-    mygridcell::OccupancyType getOccupancy(int, int);
-    void toString();
+mygridcell::OccupancyType getOccupancy(int, int);
+void toString();
 
-}
+} // namespace arenamodel

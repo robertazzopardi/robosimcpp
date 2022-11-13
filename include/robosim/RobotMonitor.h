@@ -1,9 +1,8 @@
 #pragma once
 
-#include <memory>
-
 #include "Colour.h"
 #include "SimulatedRobot.h"
+#include <memory>
 
 namespace robosim::robotmonitor
 {

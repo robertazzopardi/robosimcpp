@@ -1,12 +1,13 @@
-#include <robosim/robosim.h>
 #include <iostream>
+#include <robosim/robosim.h>
 
 class Robot : public robosim::robotmonitor::RobotMonitor
 {
-public:
+  public:
     // Inherit constructor (essentially super the RobotMonitor constructor)
-    Robot(bool verbose, colour::Colour colour)
-        : robosim::robotmonitor::RobotMonitor(verbose, colour) {}
+    Robot(bool verbose, colour::Colour colour) : robosim::robotmonitor::RobotMonitor(verbose, colour)
+    {
+    }
 
     // Override run, to implement the robots behaviour
     void run(bool *running)

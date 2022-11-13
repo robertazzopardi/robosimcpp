@@ -3,36 +3,36 @@
 namespace mygridcell
 {
 
-    enum OccupancyType
-    {
-        OBSTACLE,
-        EMPTY,
-        ROBOT,
-        RED,
-        BLUE,
-        GREEN,
-        UNKNOWN
-    };
+enum OccupancyType
+{
+    OBSTACLE,
+    EMPTY,
+    ROBOT,
+    RED,
+    BLUE,
+    GREEN,
+    UNKNOWN
+};
 
-    class MyGridCell
-    {
-    private:
-        OccupancyType cellType;
+class MyGridCell
+{
+  private:
+    OccupancyType cellType;
 
-    public:
-        explicit MyGridCell(OccupancyType);
+  public:
+    explicit MyGridCell(OccupancyType);
 
-        MyGridCell();
+    MyGridCell();
 
-        OccupancyType getCellType() const;
+    OccupancyType getCellType() const;
 
-        void setCellType(OccupancyType);
+    void setCellType(OccupancyType);
 
-        void setEmpty();
+    void setEmpty();
 
-        bool isEmpty() const;
+    bool isEmpty() const;
 
-        const char *toString() const;
-    };
+    const char *toString() const;
+};
 
-}
+} // namespace mygridcell

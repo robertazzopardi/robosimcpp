@@ -1,29 +1,29 @@
 #pragma once
 
 #include "Colour.h"
-#include <SDL2/SDL_rect.h>
-#include <SDL2/SDL_stdinc.h>
+#include <SDL_rect.h>
+#include <SDL_stdinc.h>
 
 namespace simulatedrobot
 {
 
-  struct Circle
-  {
+struct Circle
+{
     Sint16 x;
     Sint16 y;
     Sint16 r;
-  };
+};
 
-  struct RobotRender
-  {
+struct RobotRender
+{
     Circle body;
     Circle sensor;
     SDL_FPoint radius;
     colour::Colour bodyColour;
-  };
+};
 
-  class SimulatedRobot
-  {
+class SimulatedRobot
+{
   private:
     int travelSpeed = 0;                  // mm per second.
     double travelSpeedPerUpdate = 0;      // mm per update.
@@ -192,6 +192,6 @@ namespace simulatedrobot
      * simplify speed calculations
      */
     void run();
-  };
+};
 
-}
+} // namespace simulatedrobot
