@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <iostream>
 #include <math.h>
+#include <memory>
 #include <random>
 #include <stdlib.h>
 #include <string>
@@ -357,7 +358,7 @@ void SimulatedRobot::update()
     robotRender.sensor.y = sy;
 }
 
-simulatedrobot::RobotRender SimulatedRobot::getRenderObject()
+simulatedrobot::RobotRender SimulatedRobot::getRenderObject() const
 {
     return robotRender;
 }

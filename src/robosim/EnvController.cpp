@@ -46,7 +46,7 @@ void startSimulation()
 {
     arenamodelview::initModelView();
 
-    std::vector<SimulatedRobot> simulatedRobots;
+    std::vector<std::shared_ptr<SimulatedRobot>> simulatedRobots;
     std::vector<std::thread> threads;
 
     for (auto monitor : robots)

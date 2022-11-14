@@ -1,8 +1,12 @@
 #pragma once
 
 #include "Colour.h"
-#include "SimulatedRobot.h"
 #include <memory>
+
+namespace simulatedrobot
+{
+class SimulatedRobot;
+}
 
 namespace robosim::robotmonitor
 {
@@ -10,10 +14,10 @@ namespace robosim::robotmonitor
 class RobotMonitor
 {
   private:
-    int serialNumber;
     static int robotCount;
 
-    simulatedrobot::SimulatedRobot robot;
+    // simulatedrobot::SimulatedRobot robot;
+    std::shared_ptr<simulatedrobot::SimulatedRobot> robot;
 
     int getTravelSpeed();
 
@@ -22,6 +26,8 @@ class RobotMonitor
     colour::Colour colour;
 
   public:
+    int serialNumber;
+
     RobotMonitor();
     RobotMonitor(bool, colour::Colour);
 
@@ -29,7 +35,7 @@ class RobotMonitor
 
     void setRobot(int);
 
-    simulatedrobot::SimulatedRobot getRobot();
+    std::shared_ptr<simulatedrobot::SimulatedRobot> getRobot();
 
     /**
      * Update the robots pose

@@ -11,28 +11,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 include(CTest)
 enable_testing()
 
-set(INCLUDE_PATH ${CMAKE_SOURCE_DIR}/include/robosim)
-set(SOURCE_PATH ${CMAKE_SOURCE_DIR}/src/robosim)
-
-set(HEADER_FILES
-    ${INCLUDE_PATH}/robosim.h
-    ${INCLUDE_PATH}/EnvController.h
-    ${INCLUDE_PATH}/RobotMonitor.h
-    ${INCLUDE_PATH}/Colour.h)
-
-set(INCLUDE_INSTALL_PATH include/robosim)
-set(LIB_INSTALL_PATH lib)
-
 # Define the sources of the library
 file(GLOB SOURCES
-    ${SOURCE_PATH}/*.h
-    ${SOURCE_PATH}/*.cpp
-    ${INCLUDE_PATH}/*.h)
+    ${CMAKE_SOURCE_DIR}/src/robosim/*.h
+    ${CMAKE_SOURCE_DIR}/src/robosim/*.cpp
+    ${CMAKE_SOURCE_DIR}/include/robosim/*.h)
+
 add_library(robosim SHARED ${SOURCES})
 
 target_compile_options(
     robosim
-    PUBLIC -Werror
+    PRIVATE -Werror
     -Wall
     -Wextra
     -O3
@@ -44,11 +33,20 @@ target_compile_options(
 target_include_directories(robosim PUBLIC src/robosim include/robosim)
 
 # Link with SDL2
+if (APPLE)
+    set(SDL2_LIBRARY /opt/homebrew/opt/sdl2/lib/libsdl2.dylib)
+endif()
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl2)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_gfx REQUIRED)
 target_link_libraries(robosim PRIVATE SDL2::Main SDL2::GFX)
 
 # Set up install commands
-install(TARGETS robosim DESTINATION ${LIB_INSTALL_PATH})
-install(FILES ${HEADER_FILES} DESTINATION ${INCLUDE_INSTALL_PATH})
+install(TARGETS robosim DESTINATION lib)
+set(HEADER_FILES
+    ${CMAKE_SOURCE_DIR}/include/robosim/robosim.h
+    ${CMAKE_SOURCE_DIR}/include/robosim/EnvController.h
+    ${CMAKE_SOURCE_DIR}/include/robosim/RobotMonitor.h
+    ${CMAKE_SOURCE_DIR}/include/robosim/Colour.h)
+install(FILES ${HEADER_FILES} DESTINATION include/robosim)

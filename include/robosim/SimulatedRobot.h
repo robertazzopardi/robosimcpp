@@ -184,7 +184,7 @@ class SimulatedRobot
     void update();
 
     // RobotRender *getRenderObject();
-    RobotRender getRenderObject();
+    RobotRender getRenderObject() const;
 
     /**
      * Updates the position of the robot in response to any locomotion

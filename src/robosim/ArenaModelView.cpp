@@ -27,7 +27,7 @@ class RobotMonitor;
 } // namespace robosim
 
 static constexpr char WINDOW_TITLE[] = "RoboSim";
-static constexpr float FRAME_DELAY = 1000 / 60;
+static constexpr float FRAME_DELAY = 1000. / 60.;
 
 using mygridcell::OccupancyType;
 using simulatedrobot::SimulatedRobot;
@@ -132,7 +132,7 @@ static inline void cleanUp()
 
 } // namespace
 
-void mainLoop(std::vector<SimulatedRobot> &robots)
+void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>> &robots)
 {
     using namespace colour;
 
@@ -179,7 +179,7 @@ void mainLoop(std::vector<SimulatedRobot> &robots)
         for (size_t i = 0; i < robots.size(); i++)
         {
             // auto renderObject = robots[i].getRenderObject();
-            auto renderObject = robots[i].getRenderObject();
+            auto renderObject = robots[i]->getRenderObject();
 
             filledCircleRGBA(renderer, renderObject.body.x, renderObject.body.y, renderObject.body.r,
                              renderObject.bodyColour.r, renderObject.bodyColour.g, renderObject.bodyColour.b,

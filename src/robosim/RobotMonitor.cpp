@@ -46,7 +46,7 @@ RobotMonitor::~RobotMonitor()
 {
 }
 
-SimulatedRobot RobotMonitor::getRobot()
+std::shared_ptr<simulatedrobot::SimulatedRobot> RobotMonitor::getRobot()
 {
     return robot;
 }
@@ -54,39 +54,38 @@ SimulatedRobot RobotMonitor::getRobot()
 void RobotMonitor::setRobot(int robotSpeed)
 {
     // robot = std::make_shared<SimulatedRobot>(true, colour);
-    robot = SimulatedRobot(true, colour);
-    // robot.setTravelSpeed(robotSpeed);
-    robot.setTravelSpeed(robotSpeed);
+    robot = std::make_shared<simulatedrobot::SimulatedRobot>(SimulatedRobot(true, colour));
+    robot->setTravelSpeed(robotSpeed);
 }
 
 bool RobotMonitor::setTravelSpeed(int travelSpeed)
 {
-    return robot.setTravelSpeed(travelSpeed);
+    return robot->setTravelSpeed(travelSpeed);
 }
 
 void RobotMonitor::travel()
 {
-    robot.travel();
-    wait([&] { return !robot.isAtDestination(); });
+    robot->travel();
+    wait([&] { return !robot->isAtDestination(); });
 }
 
 void RobotMonitor::rotate(int degrees)
 {
-    robot.rotate(degrees);
-    wait([&] { return !robot.isAtRotation(); });
+    robot->rotate(degrees);
+    wait([&] { return !robot->isAtRotation(); });
 }
 
 void RobotMonitor::setDirection(int degrees)
 {
-    if (robot.setDirection(degrees))
+    if (robot->setDirection(degrees))
     {
-        wait([&] { return robot.getDirection() != degrees; });
+        wait([&] { return robot->getDirection() != degrees; });
     }
 }
 
 void RobotMonitor::setPose(int x, int y, int heading)
 {
-    robot.setPose(x, y, heading);
+    robot->setPose(x, y, heading);
 }
 
 /**
@@ -100,17 +99,17 @@ void RobotMonitor::setPose(int x, int y, int heading)
 
 int RobotMonitor::getX()
 {
-    return robot.getX();
+    return robot->getX();
 }
 
 int RobotMonitor::getY()
 {
-    return robot.getY();
+    return robot->getY();
 }
 
 int RobotMonitor::getHeading()
 {
-    return robot.getHeading();
+    return robot->getHeading();
 }
 
 /**
@@ -131,27 +130,27 @@ int RobotMonitor::getHeading()
 
 bool RobotMonitor::isBumperPressed()
 {
-    return robot.isBumperPressed();
+    return robot->isBumperPressed();
 }
 
 colour::Colour RobotMonitor::getCSenseColor()
 {
-    return robot.getCSenseColor();
+    return robot->getCSenseColor();
 }
 
 int RobotMonitor::getUSenseRange()
 {
-    return robot.getUSenseRange();
+    return robot->getUSenseRange();
 }
 
 int RobotMonitor::getDirection()
 {
-    return robot.getDirection();
+    return robot->getDirection();
 }
 
 int RobotMonitor::getTravelSpeed()
 {
-    return robot.getTravelSpeed();
+    return robot->getTravelSpeed();
 }
 
 // =========================================================================================
