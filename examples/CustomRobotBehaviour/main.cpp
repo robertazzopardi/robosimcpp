@@ -16,11 +16,11 @@ class Robot : public robosim::robotmonitor::RobotMonitor
 
         while (*running)
         {
-            travel();
+	   travel();
 
-            rotate(90);
-            // setDirection(-90);
-            debug();
+	   rotate(90);
+	   // setDirection(-90);
+	   debug();
         }
     }
 };

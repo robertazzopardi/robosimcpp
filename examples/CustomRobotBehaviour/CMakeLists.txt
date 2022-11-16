@@ -8,6 +8,4 @@ add_executable(${PROJECT_NAME} main.cpp)
 
 # Link Robosim library and headers
 find_library(ROBOSIM_LIB NAMES robosim librobosim)
-message(STATUS ${ROBOSIM_LIB})
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL2 ${ROBOSIM_LIB})
-# target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_INSTALL_INCLUDEDIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL2 robosim)
