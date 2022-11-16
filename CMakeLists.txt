@@ -21,7 +21,8 @@ add_library(robosim SHARED ${SOURCES})
 
 target_compile_options(
     robosim
-    PRIVATE -Werror
+    PRIVATE 
+    -Werror
     -Wall
     -Wextra
     -O3
@@ -30,7 +31,7 @@ target_compile_options(
     -ffunction-sections
     -fdata-sections)
 
-target_include_directories(robosim PUBLIC src/robosim include/robosim)
+target_include_directories(robosim PRIVATE src/robosim include/robosim)
 
 # Link with SDL2
 add_subdirectory(lib/SDL)
@@ -38,10 +39,10 @@ target_include_directories(robosim PRIVATE lib/SDL/include)
 target_link_libraries(robosim PRIVATE SDL2)
 
 # Set up install commands
-install(TARGETS robosim DESTINATION lib)
+install(TARGETS robosim DESTINATION ${CMAKE_INSTALL_LIBDIR})
 set(HEADER_FILES
     ${CMAKE_SOURCE_DIR}/include/robosim/robosim.h
     ${CMAKE_SOURCE_DIR}/include/robosim/EnvController.h
     ${CMAKE_SOURCE_DIR}/include/robosim/RobotMonitor.h
     ${CMAKE_SOURCE_DIR}/include/robosim/Colour.h)
-install(FILES ${HEADER_FILES} DESTINATION include/robosim)
+install(FILES ${HEADER_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/robosim)

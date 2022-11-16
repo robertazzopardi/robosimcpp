@@ -14,7 +14,7 @@ namespace robosim::robotmonitor
 class RobotMonitor
 {
   private:
-    static int robotCount;
+    static uint8_t robotCount;
 
     // simulatedrobot::SimulatedRobot robot;
     std::shared_ptr<simulatedrobot::SimulatedRobot> robot;

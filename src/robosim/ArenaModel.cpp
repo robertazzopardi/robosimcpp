@@ -39,7 +39,7 @@ ConfigLine tokenizeString(std::string str)
     catch (const std::exception &e)
     {
         throw std::runtime_error("Line in config file must be in the format (int), (int), "
-                                 "(String)\n");
+			      "(String)\n");
     }
 
     auto occTypeStr = tokens[2];
@@ -98,17 +98,17 @@ void parseConfigFile(const char *filePath)
         // Output the text from the file
         if (!line.empty())
         {
-            lines.push_back(tokenizeString(line));
+	   lines.push_back(tokenizeString(line));
         }
     }
 
     int width = 0, height = 0;
-    for (auto var : lines)
+    for (const auto &var : lines)
     {
         if (var.col > width)
-            width = var.col + 1;
+	   width = var.col + 1;
         if (var.row > height)
-            height = var.row + 1;
+	   height = var.row + 1;
     }
 
     initGrid(width, height, height);
@@ -116,7 +116,7 @@ void parseConfigFile(const char *filePath)
     std::for_each(lines.begin(), lines.end(), setOccupancy);
 }
 
-static constexpr auto isInBounds(const int row, const int col)
+static constexpr bool isInBounds(const int row, const int col)
 {
     return (row >= 0 && row <= static_cast<int>(grid.size())) && (col >= 0 && col <= static_cast<int>(grid.size()));
 }
@@ -145,7 +145,7 @@ void makeModel(int width, int height)
     }
 }
 
-void setOccupancy(ConfigLine line)
+void setOccupancy(const ConfigLine &line)
 {
     // Check the bounds of the col and row pos
     if (isInBounds(line.row, line.col))
@@ -156,7 +156,7 @@ void setOccupancy(ConfigLine line)
 
         if (cell->isEmpty())
         {
-            cell->setCellType(line.occ);
+	   cell->setCellType(line.occ);
         }
     }
 }
@@ -176,12 +176,12 @@ void toString()
 {
     std::string arenaModel = " Arena " + std::to_string(grid[0].size()) + " x " + std::to_string(grid.size()) + "\n";
 
-    for (auto row : grid)
+    for (const auto &row : grid)
     {
-        for (auto col : row)
+        for (const auto &col : row)
         {
-            arenaModel += col.toString();
-            arenaModel += " ";
+	   arenaModel += col.toString();
+	   arenaModel += " ";
         }
         arenaModel += "\n";
     }

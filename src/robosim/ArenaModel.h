@@ -22,7 +22,7 @@ extern float cellWidth;
 void makeModel(const char *);
 void makeModel(int, int);
 
-void setOccupancy(ConfigLine);
+void setOccupancy(const ConfigLine &);
 
 mygridcell::OccupancyType getOccupancy(int, int);
 void toString();

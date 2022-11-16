@@ -12,24 +12,22 @@
 
 namespace
 {
-using simulatedrobot::SimulatedRobot;
-
 constexpr auto DELAY = 100;
 
-template <typename Condition> void wait(Condition condition)
-{
-    while (arenamodelview::running && condition())
-    {
-        SDL_Delay(DELAY);
-    }
-}
+// template <typename Condition> void wait(Condition condition)
+// {
+//    while (arenamodelview::running && condition())
+//    {
+//        SDL_Delay(DELAY);
+//    }
+//}
 
 } // namespace
 
 namespace robosim::robotmonitor
 {
 
-int RobotMonitor::robotCount = 1;
+uint8_t RobotMonitor::robotCount = 0;
 
 RobotMonitor::RobotMonitor()
 {
@@ -38,7 +36,7 @@ RobotMonitor::RobotMonitor()
 RobotMonitor::RobotMonitor(bool verbose, colour::Colour colour)
 {
     this->verbose = verbose;
-    serialNumber = robotCount++;
+    serialNumber = ++robotCount;
     this->colour = colour;
 }
 
@@ -54,7 +52,7 @@ std::shared_ptr<simulatedrobot::SimulatedRobot> RobotMonitor::getRobot()
 void RobotMonitor::setRobot(int robotSpeed)
 {
     // robot = std::make_shared<SimulatedRobot>(true, colour);
-    robot = std::make_shared<simulatedrobot::SimulatedRobot>(SimulatedRobot(true, colour));
+    robot = std::make_shared<simulatedrobot::SimulatedRobot>(simulatedrobot::SimulatedRobot(true, colour));
     robot->setTravelSpeed(robotSpeed);
 }
 
@@ -66,20 +64,29 @@ bool RobotMonitor::setTravelSpeed(int travelSpeed)
 void RobotMonitor::travel()
 {
     robot->travel();
-    wait([&] { return !robot->isAtDestination(); });
+    while (arenamodelview::running && !robot->isAtDestination())
+    {
+        SDL_Delay(DELAY);
+    }
 }
 
 void RobotMonitor::rotate(int degrees)
 {
     robot->rotate(degrees);
-    wait([&] { return !robot->isAtRotation(); });
+    while (arenamodelview::running && !robot->isAtRotation())
+    {
+        SDL_Delay(DELAY);
+    }
 }
 
 void RobotMonitor::setDirection(int degrees)
 {
     if (robot->setDirection(degrees))
     {
-        wait([&] { return robot->getDirection() != degrees; });
+        while (arenamodelview::running && robot->getDirection() != degrees)
+        {
+	   SDL_Delay(DELAY);
+        }
     }
 }
 
@@ -168,11 +175,14 @@ int RobotMonitor::getTravelSpeed()
 
 void RobotMonitor::run(bool *running)
 {
-    wait([this, running]() {
+    while (arenamodelview::running && *running)
+    {
         if (verbose)
-            debug();
-        return *running;
-    });
+        {
+	   debug();
+        }
+        SDL_Delay(DELAY);
+    }
 }
 
 void RobotMonitor::debug()
@@ -180,12 +190,12 @@ void RobotMonitor::debug()
     colour::Colour c = getCSenseColor();
 
     std::cout << "Debug Robot " << serialNumber << "\nPose: (" << getX() << "," << getY() << ") with heading "
-              << getHeading() << "\nwith a current travel speed of " << getTravelSpeed()
-              << "mm per second\nBumper is pressed: " << (isBumperPressed() ? "true" : "false") << "\nColour Sensor: ("
-              << std::to_string(c.r) << ", " << std::to_string(c.g) << ", " << std::to_string(c.b)
-              << ")\nRange Sensor: " << getUSenseRange() << " with direction " << getDirection()
-              << "\n==========================================================="
-                 "=======\n";
+	     << getHeading() << "\nwith a current travel speed of " << getTravelSpeed()
+	     << "mm per second\nBumper is pressed: " << (isBumperPressed() ? "true" : "false") << "\nColour Sensor: ("
+	     << std::to_string(c.r) << ", " << std::to_string(c.g) << ", " << std::to_string(c.b)
+	     << ")\nRange Sensor: " << getUSenseRange() << " with direction " << getDirection()
+	     << "\n==========================================================="
+	        "=======\n";
 }
 
 int32_t RobotMonitor::getGridX()
