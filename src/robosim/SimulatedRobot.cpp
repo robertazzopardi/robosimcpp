@@ -68,13 +68,13 @@ SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
 
         arenamodel::setOccupancy({x, y, OccupancyType::ROBOT});
 
-        auto r = arenamodel::cellWidth / 2;
+        float r = arenamodel::cellWidth / 2;
         xLocation = (x * arenamodel::cellWidth) + r;
         yLocation = (y * arenamodel::cellWidth) + r;
     }
     else
     {
-        auto center = static_cast<int>(3 * arenamodel::cellWidth / 2);
+        int32_t center = static_cast<int>(3 * arenamodel::cellWidth / 2);
 
         // Position the robot in the center of the (1,1) cell
         xLocation = center; // center of (1, 1)
@@ -88,12 +88,11 @@ SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
     // Set any other parameters
 
     // Create the robots render object
-    auto r = arenamodel::cellWidth / 3;
+    float r = arenamodel::cellWidth / 3;
     robotRender.body.r = r;
-    auto rs = r / 6;
+    float rs = r / 6;
     robotRender.sensor.r = rs;
 
-    // robotRender.bodyColour = colour;
     robotRender.bodyColour = colour;
 
     update();
@@ -358,7 +357,7 @@ void SimulatedRobot::update()
     robotRender.sensor.y = sy;
 }
 
-simulatedrobot::RobotRender SimulatedRobot::getRenderObject() const
+simulatedrobot::RenderObject SimulatedRobot::getRenderObject() const
 {
     return robotRender;
 }

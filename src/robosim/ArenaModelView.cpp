@@ -4,7 +4,6 @@
 #include "MyGridCell.h"
 #include "SimulatedRobot.h"
 #include <SDL.h>
-#include <SDL2_gfxPrimitives.h>
 #include <SDL_error.h>
 #include <SDL_events.h>
 #include <SDL_hints.h>
@@ -110,7 +109,7 @@ void buildGui()
 }
 
 template <typename Function, typename V>
-static constexpr void renderColourDraw(Function renderFunction, colour::Colour c, std::vector<V> prims)
+static constexpr void renderColourDraw(Function renderFunction, colour::Colour c, const std::vector<V> &prims)
 {
     SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
     renderFunction(renderer, prims.data(), prims.size());
@@ -128,6 +127,56 @@ static inline void cleanUp()
 
     // Quit SDL
     SDL_Quit();
+}
+
+static inline SDL_Vertex makeVertex(float x, float y, const SDL_Color &color)
+{
+    SDL_Vertex vertex = {};
+    vertex.color = color;
+    vertex.position = {x, y};
+    return vertex;
+}
+
+static void drawCircle(SDL_Renderer *renderer, int32_t centreX, int32_t centreY, int32_t radius, const SDL_Color &color)
+{
+    const float diameter = radius * 2;
+
+    float x = radius - 1;
+    float y = 0;
+    float tx = 1;
+    float ty = 1;
+    float error = tx - diameter;
+
+    std::vector<SDL_Vertex> vertices;
+
+    while (x >= y)
+    {
+        //  Each of the following renders an octant of the circle
+        vertices.push_back(makeVertex(centreX + x, centreY - y, color));
+        vertices.push_back(makeVertex(centreX + x, centreY + y, color));
+        vertices.push_back(makeVertex(centreX - x, centreY - y, color));
+        vertices.push_back(makeVertex(centreX - x, centreY + y, color));
+        vertices.push_back(makeVertex(centreX + y, centreY - x, color));
+        vertices.push_back(makeVertex(centreX + y, centreY + x, color));
+        vertices.push_back(makeVertex(centreX - y, centreY - x, color));
+        vertices.push_back(makeVertex(centreX - y, centreY + x, color));
+
+        if (error <= 0)
+        {
+            ++y;
+            error += ty;
+            ty += 2;
+        }
+
+        if (error > 0)
+        {
+            --x;
+            tx += 2;
+            error += (tx - diameter);
+        }
+    }
+
+    SDL_RenderGeometry(renderer, nullptr, vertices.data(), vertices.size(), nullptr, 0);
 }
 
 } // namespace
@@ -175,22 +224,20 @@ void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>>
         renderColourDraw(SDL_RenderDrawRectsF, LINE_BLUE, renderObjects.points);
 
         // Draw Robots
-        // for (auto robot : robots) {
-        for (size_t i = 0; i < robots.size(); i++)
+        for (const auto &robot : robots)
         {
-            // auto renderObject = robots[i].getRenderObject();
-            auto renderObject = robots[i]->getRenderObject();
+            simulatedrobot::RenderObject renderObject = robot->getRenderObject();
 
-            filledCircleRGBA(renderer, renderObject.body.x, renderObject.body.y, renderObject.body.r,
-                             renderObject.bodyColour.r, renderObject.bodyColour.g, renderObject.bodyColour.b,
-                             renderObject.bodyColour.a);
+            SDL_Color bodyColor = {renderObject.bodyColour.r, renderObject.bodyColour.g, renderObject.bodyColour.b,
+                                   renderObject.bodyColour.a};
+            drawCircle(renderer, renderObject.body.x, renderObject.body.y, renderObject.body.r, bodyColor);
 
             SDL_SetRenderDrawColor(renderer, OFF_WHITE.r, OFF_WHITE.g, OFF_WHITE.b, OFF_WHITE.a);
             SDL_RenderDrawLineF(renderer, renderObject.body.x, renderObject.body.y, renderObject.radius.x,
                                 renderObject.radius.y);
 
-            filledCircleRGBA(renderer, renderObject.sensor.x, renderObject.sensor.y, renderObject.sensor.r, OFF_WHITE.r,
-                             OFF_WHITE.g, OFF_WHITE.b, OFF_WHITE.a);
+            SDL_Color sensorColor = {OFF_WHITE.r, OFF_WHITE.g, OFF_WHITE.b, OFF_WHITE.a};
+            drawCircle(renderer, renderObject.sensor.x, renderObject.sensor.y, renderObject.sensor.r, sensorColor);
         }
 
         // Draw to screen

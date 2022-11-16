@@ -14,7 +14,7 @@ struct Colour
     uint8_t b;
     uint8_t a;
 
-    inline auto operator==(const Colour &oc) const
+    inline bool operator==(const Colour &oc) const
     {
         return r == oc.r && g == oc.g && b == oc.b && a == oc.a;
     }

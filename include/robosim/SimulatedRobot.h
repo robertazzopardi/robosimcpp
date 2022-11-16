@@ -14,7 +14,7 @@ struct Circle
     Sint16 r;
 };
 
-struct RobotRender
+struct RenderObject
 {
     Circle body;
     Circle sensor;
@@ -50,7 +50,7 @@ class SimulatedRobot
     bool isColliding(int, int, int, int);
 
     // std::unique_ptr<RobotRender> robotRender;
-    RobotRender robotRender;
+    RenderObject robotRender;
 
     /**
      * Pose: sets the heading of the robot
@@ -184,7 +184,7 @@ class SimulatedRobot
     void update();
 
     // RobotRender *getRenderObject();
-    RobotRender getRenderObject() const;
+    RenderObject getRenderObject() const;
 
     /**
      * Updates the position of the robot in response to any locomotion

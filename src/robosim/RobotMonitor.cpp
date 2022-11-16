@@ -177,7 +177,7 @@ void RobotMonitor::run(bool *running)
 
 void RobotMonitor::debug()
 {
-    auto c = getCSenseColor();
+    colour::Colour c = getCSenseColor();
 
     std::cout << "Debug Robot " << serialNumber << "\nPose: (" << getX() << "," << getY() << ") with heading "
               << getHeading() << "\nwith a current travel speed of " << getTravelSpeed()
@@ -188,12 +188,12 @@ void RobotMonitor::debug()
                  "=======\n";
 }
 
-int RobotMonitor::getGridX()
+int32_t RobotMonitor::getGridX()
 {
     return static_cast<int>((((static_cast<double>(getX() / envcontroller::getCellWidth())) * 2) - 1) / 2);
 }
 
-int RobotMonitor::getGridY()
+int32_t RobotMonitor::getGridY()
 {
     return static_cast<int>((((static_cast<double>(getY() / envcontroller::getCellWidth())) * 2) - 1) / 2);
 }

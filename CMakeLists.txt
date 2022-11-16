@@ -33,14 +33,9 @@ target_compile_options(
 target_include_directories(robosim PUBLIC src/robosim include/robosim)
 
 # Link with SDL2
-if (APPLE)
-    set(SDL2_LIBRARY /opt/homebrew/opt/sdl2/lib/libsdl2.dylib)
-endif()
-
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl2)
-find_package(SDL2 REQUIRED)
-find_package(SDL2_gfx REQUIRED)
-target_link_libraries(robosim PRIVATE SDL2::Main SDL2::GFX)
+add_subdirectory(lib/SDL)
+target_include_directories(robosim PRIVATE lib/SDL/include)
+target_link_libraries(robosim PRIVATE SDL2)
 
 # Set up install commands
 install(TARGETS robosim DESTINATION lib)
