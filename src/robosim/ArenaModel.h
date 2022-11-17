@@ -1,19 +1,19 @@
 #pragma once
 
-#include "MyGridCell.h"
+#include "GridCell.h"
 #include <vector>
 
 namespace arenamodel
 {
 
-using Row = std::vector<mygridcell::MyGridCell>;
+using Row = std::vector<gridcell::GridCell>;
 using Grid = std::vector<Row>;
 
 struct ConfigLine
 {
-    int row;
-    int col;
-    mygridcell::OccupancyType occ;
+    int32_t row;
+    int32_t col;
+    gridcell::OccupancyType occ;
 };
 
 extern Grid grid;
@@ -24,7 +24,7 @@ void makeModel(int, int);
 
 void setOccupancy(const ConfigLine &);
 
-mygridcell::OccupancyType getOccupancy(int, int);
+gridcell::OccupancyType getOccupancy(int, int);
 void toString();
 
 } // namespace arenamodel

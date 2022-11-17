@@ -1,6 +1,6 @@
 #pragma once
 
-namespace mygridcell
+namespace gridcell
 {
 
 enum OccupancyType
@@ -14,15 +14,15 @@ enum OccupancyType
     UNKNOWN
 };
 
-class MyGridCell
+class GridCell
 {
   private:
     OccupancyType cellType;
 
   public:
-    explicit MyGridCell(OccupancyType);
+    explicit GridCell(OccupancyType);
 
-    MyGridCell();
+    GridCell();
 
     OccupancyType getCellType() const;
 
@@ -35,4 +35,4 @@ class MyGridCell
     const char *toString() const;
 };
 
-} // namespace mygridcell
+} // namespace gridcell

@@ -2,7 +2,8 @@
 #include "ArenaModel.h"
 #include "ArenaModelView.h"
 #include "Colour.h"
-#include "MyGridCell.h"
+#include "EnvController.h"
+#include "GridCell.h"
 #include <SDL_rect.h>
 #include <SDL_timer.h>
 #include <algorithm>
@@ -14,31 +15,31 @@
 #include <string>
 #include <vector>
 
-constexpr auto DEGREES_TO_RADIANS = 0.017453292519943295;
+constexpr double DEGREES_TO_RADIANS = 0.017453292519943295;
 
 // Physical Characteristics of the Robot
 
 // Leftmost angle that the sensor can be set
-constexpr auto LEFT_SENSORANGLE = -90;
+constexpr int16_t LEFT_SENSORANGLE = -90;
 // Rightmost angle that the sensor can be set
-constexpr auto RIGHT_SENSORANGLE = 90;
+constexpr int16_t RIGHT_SENSORANGLE = 90;
 // Min speed of robot in mm per second
-constexpr auto LOWER_TRAVELSPEED = 10;
+constexpr uint32_t LOWER_TRAVELSPEED = 10;
 // Max speed of robot in mm per second
-constexpr auto UPPER_TRAVELSPEED = 100;
+constexpr uint32_t UPPER_TRAVELSPEED = 100;
 // The robot is modeled as a circle with this radius in mm.
-constexpr auto RADIUS_ROBOTBODY = 100;
+constexpr uint32_t RADIUS_ROBOTBODY = 100;
 // The robot sensor modeled as a circle with this radius in mm.
-constexpr auto RADIUS_SENSORBODY = 20;
+constexpr uint32_t RADIUS_SENSORBODY = 20;
 // Update Delay is 0.1 second, to simplify update calculations
-constexpr auto UPDATE_DELAY = 100;
+constexpr uint32_t UPDATE_DELAY = 100;
 // Rotation speed should be fixed & independent of travel speed
-constexpr auto ROTATION_SPEED = 50;
+constexpr float ROTATION_SPEED = 50;
 // Maximum range of the sensor in mm
-constexpr auto US_SENSOR_MAX_RANGE = 2550;
-constexpr auto UPDATE_RATE = UPDATE_DELAY / 1000.0;
+constexpr uint32_t US_SENSOR_MAX_RANGE = 2550;
+constexpr double UPDATE_RATE = UPDATE_DELAY / 1000.0;
 
-using mygridcell::OccupancyType;
+using gridcell::OccupancyType;
 using simulatedrobot::SimulatedRobot;
 
 namespace
@@ -91,7 +92,10 @@ SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
     float r = arenamodel::cellWidth / 3;
     robotRender.body.r = r;
     float rs = r / 6;
-    robotRender.sensor.r = rs;
+    SDL_FRect sensor{};
+    sensor.h = rs;
+    sensor.w = rs;
+    robotRender.sensor = sensor;
 
     robotRender.bodyColour = colour;
 
@@ -165,7 +169,7 @@ void SimulatedRobot::setPose(int x, int y, int heading)
  * =========================================================================
  */
 
-bool SimulatedRobot::setTravelSpeed(int travelSpeed)
+bool SimulatedRobot::setTravelSpeed(uint32_t travelSpeed)
 {
     if (travelSpeed < LOWER_TRAVELSPEED || travelSpeed > UPPER_TRAVELSPEED)
     {
@@ -219,7 +223,7 @@ colour::Colour SimulatedRobot::getCSenseColor()
     double colPos = floor(getX() / cellWidth);
     double rowPos = floor(getY() / cellWidth);
 
-    mygridcell::OccupancyType occupancy = arenamodel::getOccupancy(rowPos, colPos);
+    gridcell::OccupancyType occupancy = arenamodel::getOccupancy(rowPos, colPos);
     switch (occupancy)
     {
     case OccupancyType::RED:
@@ -259,11 +263,11 @@ int SimulatedRobot::getDirection()
     return currentSensorAngle;
 }
 
-int SimulatedRobot::getUSenseRange()
+uint32_t SimulatedRobot::getUSenseRange()
 {
     double sensorH = (getDirection() + getHeading()) * DEGREES_TO_RADIANS; // sensor direction in radians
 
-    int range;
+    uint32_t range;
     for (range = 0; range < US_SENSOR_MAX_RANGE; range += 10)
     {
         double xDelta = round(sin(sensorH) * range);
@@ -350,8 +354,9 @@ void SimulatedRobot::update()
 
     double sensorAngle = getDirectionInRadians() + angle;
 
-    double sx = x + sin(sensorAngle) * scale;
-    double sy = y + cos(sensorAngle) * scale;
+    double sensorOffset = (robotRender.sensor.w / 2);
+    double sx = x - sensorOffset + sin(sensorAngle) * scale;
+    double sy = y - sensorOffset + cos(sensorAngle) * scale;
 
     robotRender.sensor.x = sx;
     robotRender.sensor.y = sy;
@@ -362,9 +367,9 @@ simulatedrobot::RenderObject SimulatedRobot::getRenderObject() const
     return robotRender;
 }
 
-void SimulatedRobot::run()
+void SimulatedRobot::run(bool *running)
 {
-    while (arenamodelview::running)
+    while (*running)
     {
         double deltaDist = 0;                            // Represents the distance to travel
         double deltaRotation = 0;                        // Represents the rotation distance to rotate

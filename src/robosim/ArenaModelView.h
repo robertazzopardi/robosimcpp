@@ -8,10 +8,8 @@
 namespace arenamodelview
 {
 
-extern bool running;
-
 void initModelView();
 
-void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>> &);
+void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>> &, bool *);
 
 } // namespace arenamodelview

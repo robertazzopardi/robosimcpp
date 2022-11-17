@@ -1,11 +1,7 @@
-cmake_minimum_required(VERSION 3.7)
-project(CustomRobotBehaviour LANGUAGES CXX)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(main main.cpp)
 
-# Link Robosim library and headers
-find_library(ROBOSIM_LIB NAMES robosim librobosim)
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL2 robosim)
+target_include_directories(main PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(main PRIVATE robosim)

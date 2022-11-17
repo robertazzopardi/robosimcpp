@@ -15,15 +15,11 @@ class RobotMonitor
 {
   private:
     static uint8_t robotCount;
-
-    // simulatedrobot::SimulatedRobot robot;
+    bool verbose;
+    colour::Colour colour;
     std::shared_ptr<simulatedrobot::SimulatedRobot> robot;
 
-    int getTravelSpeed();
-
-    bool verbose;
-
-    colour::Colour colour;
+    int getTravelSpeed() const;
 
   public:
     int serialNumber;
@@ -35,7 +31,7 @@ class RobotMonitor
 
     void setRobot(int);
 
-    std::shared_ptr<simulatedrobot::SimulatedRobot> getRobot();
+    std::shared_ptr<simulatedrobot::SimulatedRobot> getRobot() const;
 
     /**
      * Update the robots pose
@@ -63,13 +59,13 @@ class RobotMonitor
      * Obtains the current position of the robot in the x axis (in mm)
      * @return the x location on the map
      */
-    int getX();
+    int getX() const;
 
     /**
      * Obtains the current position of the robot in the y axis (in mm)
      * @return the y location on the map
      */
-    int getY();
+    int getY() const;
 
     /**
      * Obtains the current position of the robot
@@ -78,7 +74,7 @@ class RobotMonitor
      * values rotate in a clockwise direction
      * @return the heading
      */
-    int getHeading();
+    int getHeading() const;
 
     /**
      * Check if the bumper is pressed.  This will be true if the robot
@@ -86,13 +82,13 @@ class RobotMonitor
      * obstacle successfully, then the value is false.
      * @return bumper status
      */
-    bool isBumperPressed();
+    bool isBumperPressed() const;
 
     /**
      * Check the  of the cell beneath the center of the robot.
      * @return a Color object
      */
-    colour::Colour getCSenseColor();
+    colour::Colour getCSenseColor() const;
 
     /**
      * Get the range of the nearest object in the direction of the sensor.
@@ -102,7 +98,7 @@ class RobotMonitor
      * diameter). The maximum range is 2550mm.
      * @return range to nearest object in the direction of the sensor in mm
      */
-    int getUSenseRange();
+    int getUSenseRange() const;
 
     /**
      * Set the desired direction of the sensor, as an offset of the heading
@@ -120,12 +116,12 @@ class RobotMonitor
      * robot; and any value in the range -90 (i.e. looking left) to 90 (i.e.
      * looking right)
      */
-    int getDirection();
+    int getDirection() const;
 
     /**
      * Logs the robots current observations and properties
      */
-    void debug();
+    void debug() const;
 
     /**
      * If this method is not overridden then the monitor writes various bits
@@ -138,12 +134,12 @@ class RobotMonitor
     /*
      * Get the robots X position on the Grid
      */
-    int getGridX();
+    int getGridX() const;
 
     /*
      * Get the robots Y position on the Grid
      */
-    int getGridY();
+    int getGridY() const;
 };
 
 } // namespace robosim::robotmonitor

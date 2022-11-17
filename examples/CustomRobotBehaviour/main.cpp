@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <robosim/robosim.h>
 
@@ -16,24 +17,31 @@ class Robot : public robosim::robotmonitor::RobotMonitor
 
         while (*running)
         {
-	   travel();
+            travel();
 
-	   rotate(90);
-	   // setDirection(-90);
-	   debug();
+            rotate(90);
+            // setDirection(-90);
+            debug();
         }
     }
 };
 
 int main(int argc, char **argv)
 {
+    if (argc != 2)
+    {
+        return EXIT_FAILURE;
+    }
+
     // obvious error handling here
     char *configFile = argv[1];
 
-    robosim::envcontroller::makeRobots<Robot>(3, colour::OFF_BLACK);
+    robosim::envcontroller::EnvController env(configFile, 50);
+    // robosim::envcontroller::EnvController env(10, 10, 50);
 
-    robosim::envcontroller::EnvController(configFile, 50);
-    // robosim::envcontroller::EnvController(10, 10, 50);
+    env.makeRobots<Robot>(3, colour::OFF_BLACK);
 
-    robosim::envcontroller::startSimulation();
+    env.startSimulation();
+
+    return EXIT_SUCCESS;
 }

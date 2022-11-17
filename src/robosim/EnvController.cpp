@@ -3,6 +3,7 @@
 #include "ArenaModelView.h"
 #include "RobotMonitor.h"
 #include "SimulatedRobot.h"
+#include <iostream>
 #include <memory>
 #include <thread>
 #include <type_traits>
@@ -13,12 +14,7 @@ using simulatedrobot::SimulatedRobot;
 namespace robosim::envcontroller
 {
 
-MonitorVec robots;
-
-namespace
-{
-
-template <typename... Args> void init(int robotSpeed, Args... args)
+template <typename... Args> static inline void init(const std::vector<RobotPtr> &robots, int robotSpeed, Args... args)
 {
     arenamodel::makeModel(args...);
 
@@ -30,34 +26,32 @@ template <typename... Args> void init(int robotSpeed, Args... args)
     arenamodel::toString();
 }
 
-} // namespace
-
-void EnvController(const char *confFileName, int robotSpeed)
+EnvController::EnvController(const char *confFileName, int robotSpeed) : running(true)
 {
-    init(robotSpeed, confFileName);
+    init(robots, robotSpeed, confFileName);
 }
 
-void EnvController(int rows, int cols, int robotSpeed)
+EnvController::EnvController(int rows, int cols, int robotSpeed) : running(true)
 {
-    init(robotSpeed, rows, cols);
+    init(robots, robotSpeed, rows, cols);
 }
 
-void startSimulation()
+void EnvController::startSimulation()
 {
     arenamodelview::initModelView();
 
     std::vector<std::shared_ptr<SimulatedRobot>> simulatedRobots;
     std::vector<std::thread> threads;
 
-    for (auto monitor : robots)
+    for (const auto &monitor : robots)
     {
-        threads.push_back(std::thread(&RobotMonitor::run, monitor, &arenamodelview::running));
-        threads.push_back(std::thread(&SimulatedRobot::run, monitor->getRobot()));
+        threads.push_back(std::thread(&RobotMonitor::run, monitor, &running));
+        threads.push_back(std::thread(&SimulatedRobot::run, monitor->getRobot(), &running));
 
         simulatedRobots.push_back(monitor->getRobot());
     }
 
-    arenamodelview::mainLoop(simulatedRobots);
+    arenamodelview::mainLoop(simulatedRobots, &running);
 
     for (size_t i = 0; i < threads.size(); i++)
     {
@@ -65,24 +59,24 @@ void startSimulation()
     }
 }
 
-float getCellWidth()
+float EnvController::getCellWidth() const
 {
     return arenamodel::cellWidth;
 }
 
-float getCellRadius()
+float EnvController::getCellRadius() const
 {
     return arenamodel::cellWidth / 2;
 };
 
-bool isRunning()
+bool EnvController::isRunning() const
 {
-    return arenamodelview::running;
+    return running;
 }
 
-void stop()
+void EnvController::stop()
 {
-    arenamodelview::running = false;
+    running = false;
 }
 
 } // namespace robosim::envcontroller

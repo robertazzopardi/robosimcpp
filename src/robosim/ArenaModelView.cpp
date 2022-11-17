@@ -1,7 +1,7 @@
 #include "ArenaModelView.h"
 #include "ArenaModel.h"
 #include "Colour.h"
-#include "MyGridCell.h"
+#include "GridCell.h"
 #include "SimulatedRobot.h"
 #include <SDL.h>
 #include <SDL_error.h>
@@ -15,26 +15,21 @@
 #include <stdlib.h>
 #include <vector>
 
-namespace robosim
+namespace robosim::robotmonitor
 {
 
-namespace robotmonitor
-{
 class RobotMonitor;
-}
 
-} // namespace robosim
+} // namespace robosim::robotmonitor
 
 static constexpr char WINDOW_TITLE[] = "RoboSim";
 static constexpr float FRAME_DELAY = 1000. / 60.;
 
-using mygridcell::OccupancyType;
+using gridcell::OccupancyType;
 using simulatedrobot::SimulatedRobot;
 
 namespace arenamodelview
 {
-
-bool running = true;
 
 namespace
 {
@@ -73,7 +68,6 @@ void buildGui()
     // Set up obstacles on the grid
     for (size_t row = 0; row < arenamodel::grid.size(); row++)
     {
-
         // Add horizontal lines
         // Check if number is not odd,
         // to mimic the loop stride of the vertical lines
@@ -131,7 +125,7 @@ static inline void cleanUp()
 
 static inline SDL_Vertex makeVertex(float x, float y, const SDL_Color &color)
 {
-    SDL_Vertex vertex = {};
+    SDL_Vertex vertex{};
     vertex.color = color;
     vertex.position = {x, y};
     return vertex;
@@ -181,21 +175,24 @@ static void drawCircle(SDL_Renderer *renderer, int32_t centreX, int32_t centreY,
 
 } // namespace
 
-void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>> &robots)
+void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>> &robots, bool *running)
 {
     using namespace colour;
 
     SDL_Event event;
 
-    // Annimation loop
-    while (running)
+    std::vector<SDL_FRect> sensors;
+    sensors.resize(robots.size());
+
+    // Animation loop
+    while (*running)
     {
         // Handle events
         while (SDL_PollEvent(&event))
         {
             if (event.type == SDL_QUIT)
             {
-                running = false;
+                *running = false;
                 break;
             }
             // switch (event.type)
@@ -224,9 +221,9 @@ void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>>
         renderColourDraw(SDL_RenderDrawRectsF, LINE_BLUE, renderObjects.points);
 
         // Draw Robots
-        for (const auto &robot : robots)
+        for (size_t i = 0; i < robots.size(); i++)
         {
-            simulatedrobot::RenderObject renderObject = robot->getRenderObject();
+            simulatedrobot::RenderObject renderObject = robots[i]->getRenderObject();
 
             SDL_Color bodyColor = {renderObject.bodyColour.r, renderObject.bodyColour.g, renderObject.bodyColour.b,
                                    renderObject.bodyColour.a};
@@ -236,9 +233,11 @@ void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>>
             SDL_RenderDrawLineF(renderer, renderObject.body.x, renderObject.body.y, renderObject.radius.x,
                                 renderObject.radius.y);
 
-            SDL_Color sensorColor = {OFF_WHITE.r, OFF_WHITE.g, OFF_WHITE.b, OFF_WHITE.a};
-            drawCircle(renderer, renderObject.sensor.x, renderObject.sensor.y, renderObject.sensor.r, sensorColor);
+            SDL_SetRenderDrawColor(renderer, OFF_WHITE.r, OFF_WHITE.g, OFF_WHITE.b, OFF_WHITE.a);
+            sensors[i] = renderObject.sensor;
         }
+
+        renderColourDraw(SDL_RenderFillRectsF, OFF_WHITE, sensors);
 
         // Draw to screen
         SDL_RenderPresent(renderer);
@@ -265,8 +264,6 @@ void initModelView()
                               arenamodel::grid.size() * arenamodel::cellWidth, 0);
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-    // renderObjects = std::make_unique<RenderObjects>();
 
     buildGui();
 }

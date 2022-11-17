@@ -1,23 +1,24 @@
 #pragma once
 
 #include "Colour.h"
+#include "EnvController.h"
 #include <SDL_rect.h>
 #include <SDL_stdinc.h>
 
 namespace simulatedrobot
 {
 
-struct Circle
+struct Vec3
 {
-    Sint16 x;
-    Sint16 y;
-    Sint16 r;
+    float x;
+    float y;
+    float r;
 };
 
 struct RenderObject
 {
-    Circle body;
-    Circle sensor;
+    Vec3 body;
+    SDL_FRect sensor;
     SDL_FPoint radius;
     colour::Colour bodyColour;
 };
@@ -128,7 +129,7 @@ class SimulatedRobot
      * @param travelSpeed the travelSpeed to set
      * @return true if the travel speed could be successfully set
      */
-    bool setTravelSpeed(int);
+    bool setTravelSpeed(uint32_t);
 
     /**
      * Locomotion: gets the current speed of the robot
@@ -178,7 +179,7 @@ class SimulatedRobot
      * float getUSenseRange();
      * Return distance to nearest object
      */
-    int getUSenseRange();
+    uint32_t getUSenseRange();
 
     // Update the Robot
     void update();
@@ -191,7 +192,7 @@ class SimulatedRobot
      * instruction Currently assumes that the update delay is 1 second, to
      * simplify speed calculations
      */
-    void run();
+    void run(bool *);
 };
 
 } // namespace simulatedrobot

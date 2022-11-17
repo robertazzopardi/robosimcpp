@@ -1,5 +1,5 @@
 #include "ArenaModel.h"
-#include "MyGridCell.h"
+#include "GridCell.h"
 #include <algorithm>
 #include <exception>
 #include <fstream>
@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-using mygridcell::OccupancyType;
+using gridcell::OccupancyType;
 
 namespace arenamodel
 {
@@ -20,7 +20,7 @@ Grid grid;
 namespace
 {
 
-constexpr auto SIZE = 800;
+constexpr uint32_t SIZE = 800;
 const std::regex reg("\\s*,\\s*");
 
 ConfigLine tokenizeString(std::string str)
@@ -39,11 +39,11 @@ ConfigLine tokenizeString(std::string str)
     catch (const std::exception &e)
     {
         throw std::runtime_error("Line in config file must be in the format (int), (int), "
-			      "(String)\n");
+                                 "(String)\n");
     }
 
-    auto occTypeStr = tokens[2];
-    auto occ = OccupancyType::EMPTY;
+    std::string occTypeStr = tokens[2];
+    gridcell::OccupancyType occ = OccupancyType::EMPTY;
 
     if (occTypeStr == "OBSTACLE")
     {
@@ -75,14 +75,14 @@ ConfigLine tokenizeString(std::string str)
     return {std::stoi(tokens[0]), std::stoi(tokens[1]), occ};
 }
 
-static void initGrid(int width, int height, const int dim)
+static void initGrid(int width, int height, const uint32_t dim)
 {
     grid.resize(width, Row(height));
 
     if (dim == 0)
         throw std::runtime_error("Grid Width / Height can not be 0\n");
 
-    cellWidth = SIZE / dim;
+    cellWidth = static_cast<float>(SIZE) / dim;
 }
 
 void parseConfigFile(const char *filePath)
@@ -98,17 +98,17 @@ void parseConfigFile(const char *filePath)
         // Output the text from the file
         if (!line.empty())
         {
-	   lines.push_back(tokenizeString(line));
+            lines.push_back(tokenizeString(line));
         }
     }
 
     int width = 0, height = 0;
-    for (const auto &var : lines)
+    for (const auto &line : lines)
     {
-        if (var.col > width)
-	   width = var.col + 1;
-        if (var.row > height)
-	   height = var.row + 1;
+        if (line.col > width)
+            width = line.col + 1;
+        if (line.row > height)
+            height = line.row + 1;
     }
 
     initGrid(width, height, height);
@@ -156,7 +156,7 @@ void setOccupancy(const ConfigLine &line)
 
         if (cell->isEmpty())
         {
-	   cell->setCellType(line.occ);
+            cell->setCellType(line.occ);
         }
     }
 }
@@ -180,8 +180,8 @@ void toString()
     {
         for (const auto &col : row)
         {
-	   arenaModel += col.toString();
-	   arenaModel += " ";
+            arenaModel += col.toString();
+            arenaModel += " ";
         }
         arenaModel += "\n";
     }
