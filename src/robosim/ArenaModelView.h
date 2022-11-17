@@ -10,6 +10,8 @@ namespace arenamodelview
 
 void initModelView();
 
-void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>> &, bool *);
+void renderLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>> &, bool *);
+
+void cleanUp();
 
 } // namespace arenamodelview

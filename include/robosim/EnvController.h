@@ -9,12 +9,10 @@
 namespace robosim::envcontroller
 {
 
-using RobotPtr = std::shared_ptr<robotmonitor::RobotMonitor>;
-
 class EnvController
 {
   private:
-    std::vector<RobotPtr> robots;
+    std::vector<std::shared_ptr<robotmonitor::RobotMonitor>> robots;
     bool running;
 
   public:
@@ -25,7 +23,7 @@ class EnvController
      * @param configFileName file path of the environment configuration file
      *
      */
-    EnvController(const char *, int);
+    EnvController(const char *);
 
     /**
      * Create an Environment with given cell width and height, with a border of
@@ -37,7 +35,7 @@ class EnvController
      *
      */
     // void EnvController(const MonitorVec &, int, int, int);
-    EnvController(int, int, int);
+    EnvController(int, int);
 
     /**
      * Creates array of robots of type Robot monitor, with specified colour
@@ -46,18 +44,21 @@ class EnvController
      *
      */
     template <typename RobotType = robotmonitor::RobotMonitor>
-    void makeRobots(const size_t count, const colour::Colour colour)
+    void makeRobots(size_t count, uint32_t speed, const colour::Colour &colour)
     {
         for (size_t i = 0; i < count; i++)
         {
-            robots.push_back(std::make_shared<RobotType>(false, colour));
+            std::shared_ptr<robotmonitor::RobotMonitor> robotMonitor =
+                std::make_shared<RobotType>(false, colour, &running);
+            robotMonitor->setRobot(speed);
+            robots.push_back(robotMonitor);
         }
     }
 
     /**
      * Begin the simulation
      */
-    void startSimulation();
+    void run();
 
     /**
      * Returns the diameter of a grid cell

@@ -13,19 +13,23 @@ namespace robosim::robotmonitor
 
 class RobotMonitor
 {
+  protected:
+    bool *running;
+
   private:
     static uint8_t robotCount;
+
     bool verbose;
+    int getTravelSpeed() const;
+
     colour::Colour colour;
     std::shared_ptr<simulatedrobot::SimulatedRobot> robot;
-
-    int getTravelSpeed() const;
 
   public:
     int serialNumber;
 
     RobotMonitor();
-    RobotMonitor(bool, colour::Colour);
+    RobotMonitor(bool, colour::Colour, bool *);
 
     virtual ~RobotMonitor();
 
@@ -129,7 +133,7 @@ class RobotMonitor
      *
      * @param running Pointer to whether the simulation is still running
      */
-    virtual void run(bool *);
+    virtual void run();
 
     /*
      * Get the robots X position on the Grid

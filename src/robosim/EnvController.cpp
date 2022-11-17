@@ -14,29 +14,21 @@ using simulatedrobot::SimulatedRobot;
 namespace robosim::envcontroller
 {
 
-template <typename... Args> static inline void init(const std::vector<RobotPtr> &robots, int robotSpeed, Args... args)
+EnvController::EnvController(const char *configFile) : running(true)
 {
-    arenamodel::makeModel(args...);
-
-    for (const auto &monitor : robots)
-    {
-        monitor->setRobot(robotSpeed);
-    }
+    arenamodel::makeModel(configFile);
 
     arenamodel::toString();
 }
 
-EnvController::EnvController(const char *confFileName, int robotSpeed) : running(true)
+EnvController::EnvController(int rows, int cols) : running(true)
 {
-    init(robots, robotSpeed, confFileName);
+    arenamodel::makeModel(rows, cols);
+
+    arenamodel::toString();
 }
 
-EnvController::EnvController(int rows, int cols, int robotSpeed) : running(true)
-{
-    init(robots, robotSpeed, rows, cols);
-}
-
-void EnvController::startSimulation()
+void EnvController::run()
 {
     arenamodelview::initModelView();
 
@@ -45,13 +37,15 @@ void EnvController::startSimulation()
 
     for (const auto &monitor : robots)
     {
-        threads.push_back(std::thread(&RobotMonitor::run, monitor, &running));
+        threads.push_back(std::thread(&RobotMonitor::run, monitor));
         threads.push_back(std::thread(&SimulatedRobot::run, monitor->getRobot(), &running));
 
         simulatedRobots.push_back(monitor->getRobot());
     }
 
-    arenamodelview::mainLoop(simulatedRobots, &running);
+    arenamodelview::renderLoop(simulatedRobots, &running);
+
+    arenamodelview::cleanUp();
 
     for (size_t i = 0; i < threads.size(); i++)
     {

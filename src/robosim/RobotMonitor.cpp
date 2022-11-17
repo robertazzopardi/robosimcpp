@@ -25,11 +25,12 @@ RobotMonitor::RobotMonitor()
 {
 }
 
-RobotMonitor::RobotMonitor(bool verbose, colour::Colour colour)
+RobotMonitor::RobotMonitor(bool verbose, colour::Colour colour, bool *running)
 {
     this->verbose = verbose;
     serialNumber = ++robotCount;
     this->colour = colour;
+    this->running = running;
 }
 
 RobotMonitor::~RobotMonitor()
@@ -55,7 +56,7 @@ bool RobotMonitor::setTravelSpeed(int travelSpeed)
 void RobotMonitor::travel()
 {
     robot->travel();
-    while (!robot->isAtDestination())
+    while (*running && !robot->isAtDestination())
     {
         SDL_Delay(DELAY);
     }
@@ -64,7 +65,7 @@ void RobotMonitor::travel()
 void RobotMonitor::rotate(int degrees)
 {
     robot->rotate(degrees);
-    while (!robot->isAtRotation())
+    while (*running && !robot->isAtRotation())
     {
         SDL_Delay(DELAY);
     }
@@ -74,7 +75,7 @@ void RobotMonitor::setDirection(int degrees)
 {
     if (robot->setDirection(degrees))
     {
-        while (robot->getDirection() != degrees)
+        while (*running && robot->getDirection() != degrees)
         {
             SDL_Delay(DELAY);
         }
@@ -164,7 +165,7 @@ int RobotMonitor::getTravelSpeed() const
 
 // =========================================================================================
 
-void RobotMonitor::run(bool *running)
+void RobotMonitor::run()
 {
     while (*running)
     {

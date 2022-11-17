@@ -5,7 +5,7 @@
 namespace colour
 {
 
-constexpr auto OPAQUE = 255;
+constexpr uint8_t OPAQUE = 255;
 
 struct Colour
 {
@@ -14,7 +14,7 @@ struct Colour
     uint8_t b;
     uint8_t a;
 
-    inline bool operator==(const Colour &oc) const
+    bool operator==(const Colour &oc) const
     {
         return r == oc.r && g == oc.g && b == oc.b && a == oc.a;
     }

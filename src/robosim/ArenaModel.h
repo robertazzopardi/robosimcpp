@@ -2,6 +2,7 @@
 
 #include "GridCell.h"
 #include <vector>
+#include <stdint.h>
 
 namespace arenamodel
 {

@@ -6,12 +6,13 @@ class Robot : public robosim::robotmonitor::RobotMonitor
 {
   public:
     // Inherit constructor (essentially super the RobotMonitor constructor)
-    Robot(bool verbose, colour::Colour colour) : robosim::robotmonitor::RobotMonitor(verbose, colour)
+    Robot(bool verbose, colour::Colour colour, bool *running)
+        : robosim::robotmonitor::RobotMonitor(verbose, colour, running)
     {
     }
 
     // Override run, to implement the robots behaviour
-    void run(bool *running)
+    void run()
     {
         std::cout << "Starting Robot: " << serialNumber << std::endl;
 
@@ -30,18 +31,18 @@ int main(int argc, char **argv)
 {
     if (argc != 2)
     {
+        std::cout << "Please provide 1 configuration file (.txt)" << std::endl;
         return EXIT_FAILURE;
     }
 
-    // obvious error handling here
     char *configFile = argv[1];
 
-    robosim::envcontroller::EnvController env(configFile, 50);
-    // robosim::envcontroller::EnvController env(10, 10, 50);
+    robosim::envcontroller::EnvController env(configFile);
+    // robosim::envcontroller::EnvController env(10, 10);
 
-    env.makeRobots<Robot>(3, colour::OFF_BLACK);
+    env.makeRobots<Robot>(3, 50, colour::OFF_BLACK);
 
-    env.startSimulation();
+    env.run();
 
     return EXIT_SUCCESS;
 }

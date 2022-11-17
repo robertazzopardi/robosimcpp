@@ -109,20 +109,6 @@ static constexpr void renderColourDraw(Function renderFunction, colour::Colour c
     renderFunction(renderer, prims.data(), prims.size());
 }
 
-static inline void cleanUp()
-{
-    // Destroy renderer
-    SDL_DestroyRenderer(renderer);
-    renderer = nullptr;
-
-    // Destroy window
-    SDL_DestroyWindow(window);
-    window = nullptr;
-
-    // Quit SDL
-    SDL_Quit();
-}
-
 static inline SDL_Vertex makeVertex(float x, float y, const SDL_Color &color)
 {
     SDL_Vertex vertex{};
@@ -175,7 +161,21 @@ static void drawCircle(SDL_Renderer *renderer, int32_t centreX, int32_t centreY,
 
 } // namespace
 
-void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>> &robots, bool *running)
+void cleanUp()
+{
+    // Destroy renderer
+    SDL_DestroyRenderer(renderer);
+    renderer = nullptr;
+
+    // Destroy window
+    SDL_DestroyWindow(window);
+    window = nullptr;
+
+    // Quit SDL
+    SDL_Quit();
+}
+
+void renderLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>> &robots, bool *running)
 {
     using namespace colour;
 
@@ -193,7 +193,7 @@ void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>>
             if (event.type == SDL_QUIT)
             {
                 *running = false;
-                break;
+                return;
             }
             // switch (event.type)
             // {
@@ -245,8 +245,6 @@ void mainLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>>
         // Frame delay
         SDL_Delay(FRAME_DELAY);
     }
-
-    cleanUp();
 }
 
 void initModelView()
