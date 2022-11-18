@@ -13,9 +13,9 @@ enable_testing()
 
 # Define the sources of the library
 file(GLOB SOURCES
-    ${CMAKE_SOURCE_DIR}/src/robosim/*.h
-    ${CMAKE_SOURCE_DIR}/src/robosim/*.cpp
-    ${CMAKE_SOURCE_DIR}/include/robosim/*.h)
+    ${PROJECT_SOURCE_DIR}/src/robosim/*.h
+    ${PROJECT_SOURCE_DIR}/src/robosim/*.cpp
+    ${PROJECT_SOURCE_DIR}/include/robosim/*.h)
 
 add_library(robosim SHARED ${SOURCES})
 
