@@ -79,6 +79,8 @@ class EnvController
      * Ends the Simulation at anytime
      */
     void stop();
+
+    std::vector<std::shared_ptr<robosim::robotmonitor::RobotMonitor>> getRobots() const;
 };
 
 } // namespace robosim::envcontroller

@@ -73,4 +73,9 @@ void EnvController::stop()
     running = false;
 }
 
+std::vector<std::shared_ptr<robosim::robotmonitor::RobotMonitor>> EnvController::getRobots() const
+{
+    return robots;
+}
+
 } // namespace robosim::envcontroller
