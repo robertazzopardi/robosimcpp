@@ -20,7 +20,7 @@ struct RenderObject
     Vec3 body;
     SDL_FRect sensor;
     SDL_FPoint radius;
-    colour::Colour bodyColour;
+    Colour bodyColour;
 };
 
 class SimulatedRobot
@@ -66,7 +66,7 @@ class SimulatedRobot
 
     // SimulatedRobot(arenamodel::ArenaModel *);
     SimulatedRobot();
-    SimulatedRobot(bool, colour::Colour);
+    SimulatedRobot(bool, Colour);
     ~SimulatedRobot();
 
     uint32_t getRobotBodySize();
@@ -173,7 +173,7 @@ class SimulatedRobot
      * the sensor will detect Color.RED, Color.GREEN and Color.BLUE
      * @return Color
      */
-    colour::Colour getCSenseColor();
+    Colour getCSenseColor();
 
     /**
      * float getUSenseRange();

@@ -17,7 +17,7 @@ file(GLOB SOURCES
     ${PROJECT_SOURCE_DIR}/src/robosim/*.cpp
     ${PROJECT_SOURCE_DIR}/include/robosim/*.h)
 
-add_library(robosim ${SOURCES})
+add_library(robosim SHARED ${SOURCES})
 
 target_compile_options(
     robosim

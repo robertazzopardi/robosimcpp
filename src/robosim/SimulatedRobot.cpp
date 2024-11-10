@@ -52,7 +52,7 @@ SimulatedRobot::SimulatedRobot()
 {
 }
 
-SimulatedRobot::SimulatedRobot(bool randomLocation, colour::Colour colour)
+SimulatedRobot::SimulatedRobot(bool randomLocation, Colour colour)
 {
     static std::uniform_int_distribution<int> distX(1, arenamodel::grid[0].size() - 1);
     static std::uniform_int_distribution<int> distY(1, arenamodel::grid.size() - 1);
@@ -217,7 +217,7 @@ bool SimulatedRobot::isBumperPressed()
     return bumperPressed;
 }
 
-colour::Colour SimulatedRobot::getCSenseColor()
+Colour SimulatedRobot::getCSenseColor()
 {
     double cellWidth = arenamodel::cellWidth;
     double colPos = floor(getX() / cellWidth);
@@ -227,17 +227,17 @@ colour::Colour SimulatedRobot::getCSenseColor()
     switch (occupancy)
     {
     case OccupancyType::RED:
-        return colour::RED;
+        return RED;
     case OccupancyType::GREEN:
-        return colour::GREEN;
+        return GREEN;
     case OccupancyType::BLUE:
-        return colour::BLUE;
+        return BLUE;
     case OccupancyType::EMPTY:
     case OccupancyType::OBSTACLE:
     case OccupancyType::ROBOT:
     case OccupancyType::UNKNOWN:
     default:
-        return colour::WHITE;
+        return WHITE;
     }
 }
 

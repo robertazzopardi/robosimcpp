@@ -1,8 +1,8 @@
 #pragma once
 
 #include "GridCell.h"
+#include <cstdint>
 #include <vector>
-#include <stdint.h>
 
 namespace arenamodel
 {

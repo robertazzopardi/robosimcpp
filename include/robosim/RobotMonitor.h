@@ -22,18 +22,21 @@ class RobotMonitor
     bool verbose;
     int getTravelSpeed() const;
 
-    colour::Colour colour;
+    Colour colour;
     std::shared_ptr<simulatedrobot::SimulatedRobot> robot;
 
   public:
     int serialNumber;
 
+    void (*run_func)(RobotMonitor *);
+    void callRunFunc();
+
     RobotMonitor();
-    RobotMonitor(bool, colour::Colour, bool *);
+    RobotMonitor(bool, Colour, bool *);
 
     virtual ~RobotMonitor();
 
-    void setRobot(int);
+    void setRobot(size_t);
 
     std::shared_ptr<simulatedrobot::SimulatedRobot> getRobot() const;
 
@@ -92,7 +95,7 @@ class RobotMonitor
      * Check the  of the cell beneath the center of the robot.
      * @return a Color object
      */
-    colour::Colour getCSenseColor() const;
+    Colour getCSenseColor() const;
 
     /**
      * Get the range of the nearest object in the direction of the sensor.

@@ -1,18 +1,15 @@
 #include "RobotMonitor.h"
 #include "ArenaModel.h"
-#include "ArenaModelView.h"
 #include "Colour.h"
-#include "EnvController.h"
 #include "SimulatedRobot.h"
 #include <SDL_timer.h>
 #include <iostream>
 #include <string>
-#include <type_traits>
 
 namespace
 {
 
-static constexpr uint32_t DELAY = 100;
+const uint32_t DELAY = 100;
 
 } // namespace
 
@@ -21,11 +18,9 @@ namespace robosim::robotmonitor
 
 uint8_t RobotMonitor::robotCount = 0;
 
-RobotMonitor::RobotMonitor()
-{
-}
+RobotMonitor::RobotMonitor() = default;
 
-RobotMonitor::RobotMonitor(bool verbose, colour::Colour colour, bool *running)
+RobotMonitor::RobotMonitor(bool verbose, Colour colour, bool *running)
 {
     this->verbose = verbose;
     serialNumber = ++robotCount;
@@ -33,16 +28,14 @@ RobotMonitor::RobotMonitor(bool verbose, colour::Colour colour, bool *running)
     this->running = running;
 }
 
-RobotMonitor::~RobotMonitor()
-{
-}
+RobotMonitor::~RobotMonitor() = default;
 
 std::shared_ptr<simulatedrobot::SimulatedRobot> RobotMonitor::getRobot() const
 {
     return robot;
 }
 
-void RobotMonitor::setRobot(int robotSpeed)
+void RobotMonitor::setRobot(size_t robotSpeed)
 {
     robot = std::make_shared<simulatedrobot::SimulatedRobot>(simulatedrobot::SimulatedRobot(true, colour));
     robot->setTravelSpeed(robotSpeed);
@@ -132,7 +125,7 @@ bool RobotMonitor::isBumperPressed() const
     return robot->isBumperPressed();
 }
 
-colour::Colour RobotMonitor::getCSenseColor() const
+Colour RobotMonitor::getCSenseColor() const
 {
     return robot->getCSenseColor();
 }
@@ -177,9 +170,19 @@ void RobotMonitor::run()
     }
 }
 
+void RobotMonitor::callRunFunc() 
+{
+    if (run_func == nullptr) {
+        std::cout << "RobotMonitor:run_func not set" << '\n';
+        return;
+    }
+
+    run_func(this);   
+}
+
 void RobotMonitor::debug() const
 {
-    colour::Colour c = getCSenseColor();
+    Colour c = getCSenseColor();
 
     std::cout << "Debug Robot " << serialNumber << "\nPose: (" << getX() << "," << getY() << ") with heading "
               << getHeading() << "\nwith a current travel speed of " << getTravelSpeed()

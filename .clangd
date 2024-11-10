@@ -1,0 +1,19 @@
+CompileFlags:
+  Add: [-std=c++17, -Wall, -Werror, -Wextra, -Iinclude/robosim, -Isrc]
+
+Diagnostics:
+  # Tweak Clang-Tidy checks
+  ClangTidy:
+    Add: [
+      modernize-*,
+      performance-*,
+      bugprone-*,
+      readability-*
+    ]
+    Remove: [
+      modernize-use-trailing-return-type
+    ]
+
+Index:
+  Background: Build # Build the index in the background
+  StandardLibrary: Yes # Index the standard library

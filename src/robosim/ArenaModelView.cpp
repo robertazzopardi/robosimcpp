@@ -12,7 +12,7 @@
 #include <SDL_timer.h>
 #include <SDL_video.h>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 
 namespace robosim::robotmonitor
@@ -103,7 +103,7 @@ void buildGui()
 }
 
 template <typename Function, typename V>
-static constexpr void renderColourDraw(Function renderFunction, colour::Colour c, const std::vector<V> &prims)
+static constexpr void renderColourDraw(Function renderFunction, Colour c, const std::vector<V> &prims)
 {
     SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
     renderFunction(renderer, prims.data(), prims.size());
@@ -177,8 +177,6 @@ void cleanUp()
 
 void renderLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot>> &robots, bool *running)
 {
-    using namespace colour;
-
     SDL_Event event;
 
     std::vector<SDL_FRect> sensors;
@@ -225,8 +223,8 @@ void renderLoop(const std::vector<std::shared_ptr<simulatedrobot::SimulatedRobot
         {
             simulatedrobot::RenderObject renderObject = robots[i]->getRenderObject();
 
-            SDL_Color bodyColor = {renderObject.bodyColour.r, renderObject.bodyColour.g, renderObject.bodyColour.b,
-                                   renderObject.bodyColour.a};
+            SDL_Color bodyColor = {(Uint8)renderObject.bodyColour.r, (Uint8)renderObject.bodyColour.g, (Uint8)renderObject.bodyColour.b,
+                                   (Uint8)renderObject.bodyColour.a};
             drawCircle(renderer, renderObject.body.x, renderObject.body.y, renderObject.body.r, bodyColor);
 
             SDL_SetRenderDrawColor(renderer, OFF_WHITE.r, OFF_WHITE.g, OFF_WHITE.b, OFF_WHITE.a);

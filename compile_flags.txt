@@ -1,0 +1,5 @@
+-Iinclude/robosim
+-Isrc
+-Ilib/SDL/include
+-xc++
+-std=c++17

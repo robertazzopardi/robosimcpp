@@ -2,9 +2,11 @@
 
 #include "Colour.h"
 #include "RobotMonitor.h"
+#include <cstddef>
 #include <memory>
-#include <stddef.h>
 #include <vector>
+
+using robosim::robotmonitor::RobotMonitor;
 
 namespace robosim::envcontroller
 {
@@ -40,20 +42,20 @@ class EnvController
     /**
      * Creates array of robots of type Robot monitor, with specified colour
      *
-     * Usage makeRobots<RobotMonitor Type>(1, colour::RED);
+     * Usage makeRobots<RobotMonitor Type>(1, RED);
      *
      */
-    template <typename RobotType = robotmonitor::RobotMonitor>
-    void makeRobots(size_t count, uint32_t speed, const colour::Colour &colour)
+    template <typename RobotType = RobotMonitor> void makeRobots(size_t count, size_t speed, const Colour &colour)
     {
         for (size_t i = 0; i < count; i++)
         {
-            std::shared_ptr<robotmonitor::RobotMonitor> robotMonitor =
-                std::make_shared<RobotType>(false, colour, &running);
+            std::shared_ptr<RobotMonitor> robotMonitor = std::make_shared<RobotType>(false, colour, &running);
             robotMonitor->setRobot(speed);
-            robots.push_back(robotMonitor);
+            robots.emplace_back(robotMonitor);
         }
     }
+
+    void makeRobotsWithFunc(size_t, size_t, const Colour &, void (*run)(RobotMonitor *));
 
     /**
      * Begin the simulation
